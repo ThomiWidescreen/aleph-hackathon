@@ -151,6 +151,7 @@ aleph-hackathon/
 │   ├── accept-contract/
 │   │   └── page.tsx       # Vista antigua para aceptar/rechazar contratos (a reemplazar)
 │   ├── contract/
+│   │   ├── page.tsx       # Índice para probar diferentes estados de contratos
 │   │   └── [id]/
 │   │       └── page.tsx   # Nueva vista unificada de detalles de contrato
 │   ├── create/
@@ -161,6 +162,12 @@ aleph-hackathon/
 │   │   └── page.tsx       # Edición de información de perfil
 │   ├── edit-portfolio-item/
 │   │   └── page.tsx       # Edición de elementos del portfolio
+│   ├── api/
+│   │   └── actions/
+│   │       ├── users/     # Acciones relacionadas con usuarios
+│   │       │   ├── getUser.ts
+│   │       │   └── putUser.ts
+│   │       └── video.actions.ts  # Acciones para gestionar videos
 │   ├── components/
 │   │   ├── BottomNav/
 │   │   │   └── index.tsx  # Componente de navegación inferior
@@ -193,6 +200,15 @@ aleph-hackathon/
 - Subida y edición de trabajos realizados
 - Categorización y etiquetado de proyectos
 - Previsualización de contenido multimedia
+
+### Sistema de Server Actions
+- **Server Actions de Videos**:
+  - `getAllVideos()`: Obtiene todos los videos disponibles en la plataforma
+  - `getVideosByQuery({ query })`: Filtra videos por categoría o búsqueda
+  - `getVideosByAuthor(authorId)`: Obtiene los videos de un autor específico
+- **Server Actions de Usuarios**:
+  - `getUser()`: Obtiene información del usuario actual
+  - `putUser()`: Actualiza información del usuario
 
 ## Próximos pasos de desarrollo
 

@@ -247,6 +247,28 @@
     "primary": "bg-gradient-to-r from-[#3E54F5] to-[#631497]",
     "textGradient": "bg-gradient-to-r from-[#3E54F5] to-[#631497] bg-clip-text text-transparent"
   },
+  "categories": {
+    "video": [
+      "All",
+      "Fitness",
+      "Cooking",
+      "Lifestyle",
+      "Streaming",
+      "Blog",
+      "Product Reviews"
+    ]
+  },
+  "serverActions": {
+    "video": {
+      "getAllVideos": "Get all videos from the database",
+      "getVideosByQuery": "Filter videos by category",
+      "getVideosByAuthor": "Get videos created by a specific author"
+    },
+    "users": {
+      "getUser": "Get current user information",
+      "putUser": "Update user information"
+    }
+  },
   "borderRadius": {
     "small": "0.25rem",
     "medium": "0.5rem",
