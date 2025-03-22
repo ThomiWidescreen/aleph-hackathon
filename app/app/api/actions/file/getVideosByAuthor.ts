@@ -7,7 +7,7 @@ export const getVideosByAuthor = async( authorAddress: string ) => {
     const videos = await Video.find({ authorAddress });
 
     if (!videos) {
-        return null;
+        return [];
     }
 
     return ({
