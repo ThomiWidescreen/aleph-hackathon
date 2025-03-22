@@ -243,7 +243,7 @@ export default function CreateContractPage() {
             <div className="flex">
               <div className="flex items-center justify-between bg-[#F5F5F5] rounded-full px-4 py-3 w-32">
                 <div className="flex items-center">
-                  <span className="text-black text-sm">WLD</span>
+                  <span className="text-black text-sm">{currency}</span>
                 </div>
               </div>
               <div className="flex-grow">
@@ -256,7 +256,9 @@ export default function CreateContractPage() {
                     onChange={handleChange}
                     className="bg-transparent outline-none text-[#3E54F5] text-lg font-medium focus:outline-none text-right w-full"
                   />
-                  <span className="text-[#ADADAD] text-xs -mt-1">$0</span>
+                  <span className="text-[#ADADAD] text-xs -mt-1">
+                    {currency === "WLD" ? "$0" : ""}
+                  </span>
                 </div>
               </div>
             </div>

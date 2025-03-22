@@ -17,18 +17,61 @@ export default function SearchPage() {
   const categories = [
     {
       id: 1,
-      title: "EXPLORING THE UNKNOWN",
-      imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format"
+      title: "FITNESS",
+      imageUrl: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800&auto=format"
     },
     {
       id: 2,
-      title: "FINDING BALANCE WITHIN",
-      imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?q=80&w=800&auto=format"
+      title: "COOKING",
+      imageUrl: "https://images.unsplash.com/photo-1556909114-44e3e9699e2b?q=80&w=800&auto=format"
     },
     {
       id: 3,
-      title: "WEAVING A NEW NARRATIVE",
-      imageUrl: "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?q=80&w=800&auto=format"
+      title: "LIFESTYLE",
+      imageUrl: "https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=800&auto=format"
+    },
+    {
+      id: 4,
+      title: "STREAMING",
+      imageUrl: "https://images.unsplash.com/photo-1611162616475-46b635cb6868?q=80&w=800&auto=format"
+    },
+    {
+      id: 5,
+      title: "BLOG",
+      imageUrl: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=800&auto=format"
+    },
+    {
+      id: 6,
+      title: "PRODUCT REVIEWS",
+      imageUrl: "https://images.unsplash.com/photo-1607082349566-187342175e2f?q=80&w=800&auto=format"
+    }
+  ];
+  
+  // Mock user search results
+  const mockUsers = [
+    {
+      id: 1,
+      name: "Alex Johnson",
+      username: "@alexj",
+      avatar: "https://randomuser.me/api/portraits/men/32.jpg"
+    },
+    {
+      id: 2,
+      name: "Sarah Miller",
+      username: "@sarahm",
+      avatar: "https://randomuser.me/api/portraits/women/44.jpg"
+    },
+    {
+      id: 3,
+      name: "James Wilson",
+      username: "@jamesw",
+      avatar: "https://randomuser.me/api/portraits/men/62.jpg"
+    },
+    {
+      id: 4,
+      name: "Maria Garcia",
+      username: "@mariag",
+      avatar: "https://randomuser.me/api/portraits/women/58.jpg"
     }
   ];
   
@@ -39,6 +82,12 @@ export default function SearchPage() {
     // In a real app, we would debounce this and make an API call
     console.log("Searching for:", value);
   };
+
+  // Filter mock users based on search query
+  const filteredUsers = mockUsers.filter(user => 
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    user.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FEFDF9]">
@@ -89,30 +138,60 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* Main Content - Featured Categories */}
+      {/* Main Content */}
       <main className="flex-grow p-4 pb-24">
-        <div className="flex flex-col gap-3">
-          {categories.map((category) => (
-            <div key={category.id} className="relative h-[200px] w-full rounded-2xl overflow-hidden">
-              <Image 
-                src={category.imageUrl}
-                alt={category.title}
-                fill
-                style={{ objectFit: 'cover' }}
-              />
-              
-              {/* Dark overlay for better text visibility */}
-              <div className="absolute inset-0 bg-black/30"></div>
-              
-              {/* Category title */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <h2 className="text-2xl font-bold font-montserrat text-white text-center px-4">
-                  {category.title}
-                </h2>
+        {searchQuery.length > 0 ? (
+          /* User search results */
+          <div className="flex flex-col gap-4">
+            <h3 className="text-lg font-medium text-gray-700">Users</h3>
+            
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map(user => (
+                <div key={user.id} className="flex items-center p-3 bg-white rounded-xl shadow-sm">
+                  <Image 
+                    src={user.avatar}
+                    width={50}
+                    height={50}
+                    alt={user.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div className="ml-3">
+                    <h4 className="font-semibold text-black">{user.name}</h4>
+                    <p className="text-gray-500 text-sm">{user.username}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No users found matching "{searchQuery}"
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+        ) : (
+          /* Categories display */
+          <div className="flex flex-col gap-3">
+            {categories.map((category) => (
+              <div key={category.id} className="relative h-[150px] w-full rounded-2xl overflow-hidden">
+                <Image 
+                  src={category.imageUrl}
+                  alt={category.title}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                />
+                
+                {/* Dark overlay for better text visibility */}
+                <div className="absolute inset-0 bg-black/30"></div>
+                
+                {/* Category title */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <h2 className="text-xl font-bold font-montserrat text-white text-center px-4">
+                    {category.title}
+                  </h2>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
 
       {/* Bottom Navigation */}
