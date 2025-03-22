@@ -1,287 +1,247 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import config from "../../@config.json";
 import BottomNav from "../../components/BottomNav";
 
 /**
- * Accept Contract page component
- * Shows contract details and allows a video editor to accept or reject a contract
+ * Página para aceptar un contrato
+ * Muestra los detalles de un contrato y permite al usuario aceptarlo
  */
 export default function AcceptContractPage() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const contractId = searchParams.get("id");
+  const searchParams = useSearchParams();
+  const contractId = searchParams.get('id');
   
+  // Estado para los datos del contrato
+  const [contractData, setContractData] = useState({
+    title: "",
+    description: "",
+    deadline: "",
+    finalPayment: 0,
+    minimumCommitment: 0,
+    recipient: ""
+  });
+  
+  // Estado para indicar carga de datos
   const [isLoading, setIsLoading] = useState(true);
-  const [contract, setContract] = useState<{
-    id: number;
-    title: string;
-    description: string;
-    clientName: string;
-    clientId: number;
-    budget: number;
-    deliveryDate: string;
-    revisions: number;
-    status: "pending" | "accepted" | "rejected";
-  } | null>(null);
+  
+  // Estado para mostrar confirmación de acción
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<"accept" | "reject" | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Mock contracts data - in a real app, this would come from API
-  const mockContracts = [
-    {
-      id: 201,
-      title: "Corporate Promo Video",
-      description: "We need a 2-minute promotional video for our new product launch. The video should highlight key features and benefits of our software solution.",
-      clientName: "TechCorp Inc.",
-      clientId: 301,
-      budget: 1500,
-      deliveryDate: "2023-12-15",
-      revisions: 2,
-      status: "pending" as "pending" | "accepted" | "rejected"
-    },
-    {
-      id: 202,
-      title: "Wedding Highlights Montage",
-      description: "Looking for a 5-minute highlight video of our wedding ceremony and reception. We want a modern, emotional style with smooth transitions.",
-      clientName: "John & Sarah Smith",
-      clientId: 302,
-      budget: 800,
-      deliveryDate: "2023-11-30",
-      revisions: 1,
-      status: "pending" as "pending" | "accepted" | "rejected"
-    },
-    {
-      id: 203,
-      title: "Product Unboxing Animation",
-      description: "3D animation showing our product unboxing and assembly. Should be approximately 45 seconds with emphasis on simplicity and our brand colors.",
-      clientName: "Gadget Innovations",
-      clientId: 303,
-      budget: 1200,
-      deliveryDate: "2023-12-10",
-      revisions: 3,
-      status: "pending" as "pending" | "accepted" | "rejected"
-    }
-  ];
 
-  // Load contract data
+  // Cargar datos del contrato
   useEffect(() => {
-    // Simulate API call delay
-    const timer = setTimeout(() => {
-      if (contractId) {
-        const foundContract = mockContracts.find(c => c.id === parseInt(contractId));
-        setContract(foundContract || null);
-      } else {
-        // If no ID provided, show first contract as default
-        setContract(mockContracts[0]);
-      }
-      setIsLoading(false);
+    // Simular carga de datos desde una API
+    const loadContractData = () => {
+      console.log(`Cargando datos del contrato${contractId ? ` ID: ${contractId}` : ''}...`);
       
-      console.log(`Contract data loaded for ID: ${contractId || 'default'}`);
-    }, 800);
+      // Simular retraso de una llamada a API
+      setTimeout(() => {
+        // Datos de ejemplo para el contrato
+        setContractData({
+          title: "The best contract ever",
+          description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience. I'd like smooth cuts, background music, basic text overlays (like ingredients or steps), and some zoom-ins or transitions to make it visually dynamic. The final video should feel professional but still have a warm, homemade vibe that fits the cooking niche.",
+          deadline: "10/10/2028",
+          finalPayment: 4059,
+          minimumCommitment: 4059,
+          recipient: "Franactis"
+        });
+        
+        setIsLoading(false);
+        console.log("Datos del contrato cargados exitosamente");
+      }, 500);
+    };
     
-    return () => clearTimeout(timer);
+    loadContractData();
   }, [contractId]);
-  
-  // Handle accept/reject button click
-  const handleActionClick = (action: "accept" | "reject") => {
-    setConfirmAction(action);
+
+  // Función para manejar la aceptación del contrato
+  const handleAcceptContract = () => {
     setShowConfirmation(true);
   };
   
-  // Handle confirmation
-  const handleConfirm = async () => {
-    if (!contract || !confirmAction) return;
-    
-    setIsSubmitting(true);
-    setError(null);
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      console.log(`Contract ${contract.id} ${confirmAction}ed`);
-      
-      // In a real app, this would update the contract in the backend
-      // For demo, just simulate success and redirect
-      
-      // Redirect to chat with client
-      if (confirmAction === "accept") {
-        router.push(`/chat?id=${contract.clientId}`);
-      } else {
-        // If rejected, go back to feed
-        router.push('/feed');
-      }
-    } catch (err) {
-      console.error("Error processing contract:", err);
-      setError(config.screens.acceptContract.errors.processingFailed);
-    } finally {
-      setIsSubmitting(false);
-    }
+  // Función para confirmar la aceptación
+  const handleConfirmAccept = () => {
+    console.log("Contrato aceptado, redirigiendo...");
+    router.push("/my-profile?view=contracts");
   };
   
-  // Cancel confirmation
-  const handleCancel = () => {
+  // Función para cancelar la confirmación
+  const handleCancelConfirmation = () => {
     setShowConfirmation(false);
-    setConfirmAction(null);
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <div className="p-4 bg-white shadow-sm mb-4">
-        <div className="flex items-center">
-          <Link
-            href="/feed"
-            className="mr-2 text-gray-600"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </Link>
-          <h1 className="text-xl font-semibold">{config.screens.acceptContract.title}</h1>
-        </div>
-      </div>
-      
-      <div className="flex-grow p-4">
-        {isLoading ? (
-          // Loading state
+    <div className="flex flex-col min-h-screen bg-[#090619] font-montserrat">
+      {isLoading ? (
+        // Estado de carga
+        <div className="flex-grow flex items-center justify-center">
           <div className="animate-pulse">
-            <div className="h-7 bg-gray-200 rounded-md mb-4 w-3/4"></div>
-            <div className="h-4 bg-gray-200 rounded-md mb-2 w-1/4"></div>
-            <div className="h-24 bg-gray-200 rounded-md mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded-md mb-2 w-1/2"></div>
-            <div className="h-4 bg-gray-200 rounded-md mb-2 w-1/3"></div>
-            <div className="h-4 bg-gray-200 rounded-md mb-2 w-2/5"></div>
+            <div className="w-60 h-6 bg-[#ADADAD] rounded-full mb-4 mx-auto"></div>
+            <div className="w-40 h-4 bg-[#ADADAD] rounded-full mb-3 mx-auto"></div>
+            <div className="w-72 h-4 bg-[#ADADAD] rounded-full mx-auto"></div>
           </div>
-        ) : contract ? (
-          // Contract details
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <h2 className="text-xl font-medium mb-2">{contract.title}</h2>
-            
-            <div className="mb-4">
-              <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                {config.screens.acceptContract.status[contract.status]}
-              </span>
-            </div>
-            
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">{config.screens.acceptContract.labels.from}</h3>
-              <p className="text-gray-800">{contract.clientName}</p>
-            </div>
-            
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">{config.screens.acceptContract.labels.description}</h3>
-              <p className="text-gray-800 whitespace-pre-line">{contract.description}</p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">{config.screens.acceptContract.labels.budget}</h3>
-                <p className="text-gray-800">${contract.budget}</p>
+        </div>
+      ) : (
+        // Contenido del contrato
+        <>
+          {/* Encabezado con botón de retroceso e ícono de chat */}
+          <div className="pt-4 px-4 pb-2 bg-[#090619]">
+            <div className="flex justify-between items-center">
+              <Link href="/my-profile?view=contracts" className="text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </Link>
+              <div className="text-white">
+                <svg width="28" height="29" viewBox="0 0 28 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 25C16.0767 25 18.1068 24.3842 19.8335 23.2304C21.5602 22.0767 22.906 20.4368 23.7007 18.5182C24.4955 16.5996 24.7034 14.4884 24.2982 12.4516C23.8931 10.4148 22.8931 8.54383 21.4246 7.07538C19.9562 5.60693 18.0852 4.6069 16.0484 4.20176C14.0116 3.79661 11.9004 4.00455 9.98182 4.79927C8.0632 5.59399 6.42332 6.9398 5.26957 8.66652C4.11581 10.3932 3.5 12.4233 3.5 14.5C3.5 16.236 3.92 17.8728 4.66667 19.3148L3.5 25L9.18517 23.8333C10.6272 24.58 12.2652 25 14 25Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">{config.screens.acceptContract.labels.delivery}</h3>
-                <p className="text-gray-800">{new Date(contract.deliveryDate).toLocaleDateString()}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">{config.screens.acceptContract.labels.revisions}</h3>
-                <p className="text-gray-800">{contract.revisions}</p>
-              </div>
-            </div>
-            
-            {/* Error message */}
-            {error && (
-              <div className="mb-4 p-2 bg-red-50 text-red-700 rounded-md text-sm">
-                {error}
-              </div>
-            )}
-            
-            {/* Action buttons */}
-            <div className="flex space-x-3 mt-6">
-              <button
-                onClick={() => handleActionClick("reject")}
-                disabled={isSubmitting}
-                className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                {config.screens.acceptContract.actions.reject}
-              </button>
-              <button
-                onClick={() => handleActionClick("accept")}
-                disabled={isSubmitting}
-                className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50"
-              >
-                {config.screens.acceptContract.actions.accept}
-              </button>
             </div>
           </div>
-        ) : (
-          // Contract not found
-          <div className="text-center p-4">
-            <p className="text-gray-600 mb-4">{config.screens.acceptContract.labels.notFound}</p>
-            <Link href="/feed" className="text-blue-600">
-              {config.screens.acceptContract.labels.returnToFeed}
-            </Link>
+          
+          {/* Perfil del usuario */}
+          <div className="pt-2 px-6 pb-4 bg-[#090619]">
+            <div className="flex items-center">
+              {/* Imagen de perfil */}
+              <div className="w-10 h-10 rounded-full overflow-hidden">
+                <div className="w-full h-full bg-[#ADADAD] flex items-center justify-center">
+                  <span className="text-lg text-white font-montserrat">{contractData.recipient.charAt(0)}</span>
+                </div>
+              </div>
+              
+              <div className="ml-3">
+                {/* Nombre del creador */}
+                <h2 className="text-white font-montserrat text-lg font-bold">{contractData.recipient}</h2>
+                
+                {/* Texto "Accept contract" con gradiente */}
+                <p className="bg-gradient-to-r from-[#3E54F5] to-[#631497] bg-clip-text text-transparent font-montserrat text-sm font-normal">
+                  Accept contract
+                </p>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+          
+          {/* Contenedor de detalles del contrato */}
+          <div className="flex-grow bg-white rounded-t-2xl px-6 pt-5 pb-24">
+            {/* Título del contrato */}
+            <h1 className="text-[#090619] font-montserrat text-xl font-bold mb-2">
+              {contractData.title}
+            </h1>
+            
+            {/* Fecha límite */}
+            <div className="mb-4">
+              <span className="text-[#090619] font-montserrat text-sm font-medium">Deadline: </span>
+              <span className="text-[#3E54F5] font-montserrat text-sm font-medium">{contractData.deadline}</span>
+            </div>
+            
+            {/* Descripción */}
+            <p className="text-[#ADADAD] font-montserrat text-sm font-normal mb-6">
+              {contractData.description}
+            </p>
+            
+            {/* Pago final */}
+            <div className="mb-6">
+              <h3 className="text-[#090619] font-montserrat text-sm font-medium mb-2">
+                Final Payment
+              </h3>
+              
+              <div className="flex mb-2">
+                {/* Selector de WLD (no modificable) */}
+                <div className="flex items-center bg-[#F5F5F5] rounded-full px-4 py-3 w-32">
+                  <div className="flex items-center">
+                    <span className="text-black font-montserrat text-sm">WLD</span>
+                  </div>
+                </div>
+                
+                {/* Valor */}
+                <div className="flex-grow">
+                  <div className="bg-[#F5F5F5] rounded-full py-2 px-4 h-full ml-2 flex flex-col items-end">
+                    <span className="text-[#3E54F5] font-montserrat text-lg font-medium">{contractData.finalPayment}</span>
+                    <span className="text-[#ADADAD] font-montserrat text-xs font-normal">$100</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Compromiso mínimo */}
+            <div className="mb-8">
+              <div className="flex items-center gap-1 mb-2">
+                <h3 className="text-[#090619] font-montserrat text-sm font-medium">
+                  Minimun Commitment Stake
+                </h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="#ADADAD" strokeWidth="2"/>
+                  <path d="M12 8V12M12 16V16.1" stroke="#ADADAD" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+              
+              <div className="flex mb-2">
+                {/* Selector de WLD (no modificable) */}
+                <div className="flex items-center bg-[#F5F5F5] rounded-full px-4 py-3 w-32">
+                  <div className="flex items-center">
+                    <span className="text-black font-montserrat text-sm">WLD</span>
+                  </div>
+                </div>
+                
+                {/* Valor */}
+                <div className="flex-grow">
+                  <div className="bg-[#F5F5F5] rounded-full py-2 px-4 h-full ml-2 flex flex-col items-end">
+                    <span className="text-[#3E54F5] font-montserrat text-lg font-medium">{contractData.minimumCommitment}</span>
+                    <span className="text-[#ADADAD] font-montserrat text-xs font-normal">$100</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Botón de acción */}
+            <button
+              onClick={handleAcceptContract}
+              className="w-full bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white font-montserrat text-sm font-medium rounded-full py-3"
+            >
+              Accept Contract
+            </button>
+          </div>
+        </>
+      )}
       
-      {/* Confirmation Modal */}
+      {/* Modal de confirmación */}
       {showConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-sm">
-            <h3 className="text-lg font-semibold mb-2">
-              {confirmAction === "accept" 
-                ? config.screens.acceptContract.confirmations.acceptTitle
-                : config.screens.acceptContract.confirmations.rejectTitle}
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-6 z-50">
+          <div className="bg-white rounded-2xl p-5 w-full max-w-sm">
+            <h3 className="text-lg font-semibold mb-3 text-[#090619] font-montserrat">
+              Confirmar aceptación
             </h3>
-            <p className="text-gray-600 mb-4">
-              {confirmAction === "accept"
-                ? config.screens.acceptContract.confirmations.acceptMessage
-                : config.screens.acceptContract.confirmations.rejectMessage}
+            <p className="text-[#ADADAD] mb-5 font-montserrat text-sm">
+              ¿Estás seguro de que quieres aceptar este contrato? Una vez aceptado, estarás comprometido a completar el trabajo según los términos acordados.
             </p>
             <div className="flex space-x-3">
               <button
-                onClick={handleCancel}
-                className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-50 transition-colors"
-                disabled={isSubmitting}
+                onClick={handleCancelConfirmation}
+                className="flex-1 border border-[#ADADAD] text-[#090619] py-2 rounded-full hover:bg-gray-50 transition-colors font-montserrat text-sm"
               >
-                {config.screens.acceptContract.actions.cancel}
+                Cancelar
               </button>
               <button
-                onClick={handleConfirm}
-                className={`flex-1 py-2 rounded-md text-white transition-colors ${
-                  confirmAction === "accept" 
-                    ? "bg-blue-500 hover:bg-blue-600" 
-                    : "bg-red-500 hover:bg-red-600"
-                }`}
-                disabled={isSubmitting}
+                onClick={handleConfirmAccept}
+                className="flex-1 bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white py-2 rounded-full transition-colors font-montserrat text-sm"
               >
-                {isSubmitting ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    {config.screens.acceptContract.actions.processing}
-                  </span>
-                ) : (
-                  confirmAction === "accept"
-                    ? config.screens.acceptContract.actions.confirm
-                    : config.screens.acceptContract.actions.confirmReject
-                )}
+                Confirmar
               </button>
             </div>
           </div>
         </div>
       )}
       
-      {/* Bottom Navigation */}
-      <BottomNav />
+      {/* Navegación inferior */}
+      <BottomNav activeView="contracts" />
+      
+      {/* Estilos globales */}
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap');
+      `}</style>
     </div>
   );
 } 

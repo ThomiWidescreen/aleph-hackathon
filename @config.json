@@ -1,0 +1,48 @@
+{
+  "colors": {
+    "primary": "#3E54F5",
+    "secondary": "#631497",
+    "background": "#090619",
+    "textPrimary": "#090619",
+    "textSecondary": "#555555",
+    "textPlaceholder": "#ADADAD",
+    "inputBackground": "#F5F5F5",
+    "uploadBackground": "#EDD1FF",
+    "white": "#FFFFFF"
+  },
+  "gradients": {
+    "primary": "bg-gradient-to-r from-[#3E54F5] to-[#631497]",
+    "textGradient": "bg-gradient-to-r from-[#3E54F5] to-[#631497] bg-clip-text text-transparent"
+  },
+  "borderRadius": {
+    "small": "rounded",
+    "medium": "rounded-lg",
+    "large": "rounded-xl",
+    "full": "rounded-full",
+    "topLarge": "rounded-t-2xl"
+  },
+  "spacing": {
+    "containerPadding": "px-6",
+    "bottomNavSpace": "pb-24"
+  },
+  "contractStatus": {
+    "request": "contract_request",
+    "inProgress": "in_progress",
+    "completed": "completed",
+    "expiresSoon": "expires_soon"
+  },
+  "routes": {
+    "createContract": "/create-contract",
+    "acceptContract": "/accept-contract",
+    "myProfile": "/my-profile",
+    "myProfileContracts": "/my-profile?view=contracts",
+    "uploadProject": "/upload-project"
+  },
+  "currencyOptions": {
+    "wld": "WLD",
+    "usdc": "USDC"
+  },
+  "mockData": {
+    "wldToUsdRate": 0.0246
+  }
+} 

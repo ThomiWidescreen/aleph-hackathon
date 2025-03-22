@@ -7,17 +7,43 @@ import config from "../../@config.json";
 import BottomNav from "../../components/BottomNav";
 
 /**
- * Tipos para el perfil de usuario y sus datos
+ * Interfaces para los datos de usuario y videos
  */
-type ContractStatus = "in_progress" | "completed" | "expires_soon";
+export interface IUser {
+  address: string;
+  name: string;
+  description: string;
+  photo: string;
+  state: boolean;
+  hiringAvailability: boolean;
+  score: number; // Score del usuario del 1 al 5 (float)
+}
+
+export interface IVideo {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  tags: string[];
+  authorAddress: string;
+  urlVideo: string;
+}
+
+/**
+ * Tipos para el estado de contratos (aún mockupeados)
+ */
+type ContractStatus = "in_progress" | "completed" | "expires_soon" | "contract_request";
 type ContractType = {
   id: string;
   title: string;
   status: ContractStatus;
   description: string;
   price: number;
+  deadline: string;
 };
 
+// Tipo para las creaciones (videos)
 type CreationType = {
   id: string;
   title: string;
@@ -25,14 +51,64 @@ type CreationType = {
   description: string;
 };
 
-type UserProfileType = {
-  id: string;
-  name: string;
-  description: string;
-  profileImage: string;
-  creations: CreationType[];
-  contracts: ContractType[];
-} | null;
+/**
+ * Simulación de la función para obtener dirección de usuario
+ * En una implementación real, esto obtendría la dirección del wallet conectado
+ */
+const getUserAddress = (): string => {
+  return "0x1234567890abcdef1234567890abcdef12345678"; // Dirección de ejemplo
+};
+
+/**
+ * Simulación de función para obtener datos de usuario
+ * En una implementación real, esto haría una llamada a la API
+ */
+const getUser = async ({ address }: { address: string }): Promise<{ user: IUser; error?: string }> => {
+  // Simular respuesta exitosa de la API con datos de usuario
+  return {
+    user: {
+      address: address,
+      name: "Fransctis",
+      description: "Apasionado chef casero compartiendo recetas sabrosas, trucos de cocina y contenido lleno de sabor directo de la cocina a tu pantalla.",
+      photo: "",
+      state: true,
+      hiringAvailability: true,
+      score: 4.8
+    }
+  };
+};
+
+/**
+ * Simulación de función para obtener videos del autor
+ * En una implementación real, esto haría una llamada a la API
+ */
+const getVideosByAuthor = async ({ address }: { address: string }): Promise<{ videos: IVideo[]; error?: string }> => {
+  // Simular respuesta exitosa de la API con datos de videos
+  return {
+    videos: [
+      { 
+        id: "video-001", 
+        title: "Cocinando Ramen Japonés", 
+        description: "Una guía paso a paso para hacer ramen auténtico en casa.",
+        category: "Cooking",
+        price: 0,
+        tags: ["cooking", "japanese", "ramen"],
+        authorAddress: address,
+        urlVideo: "" // URL vacía para provocar el uso del placeholder
+      },
+      { 
+        id: "video-002", 
+        title: "Receta de Pho Vietnamita", 
+        description: "Aprende a cocinar pho vietnamita tradicional con ingredientes frescos.",
+        category: "Cooking",
+        price: 0,
+        tags: ["cooking", "vietnamese", "pho"],
+        authorAddress: address,
+        urlVideo: "" // URL vacía para provocar el uso del placeholder
+      }
+    ]
+  };
+};
 
 /**
  * Componente para mostrar el indicador de estado de contrato
@@ -60,6 +136,11 @@ const StatusIndicator = ({ status }: { status: string }) => {
       textColor = "text-orange-500";
       statusText = "Expira pronto";
       break;
+    case "contract_request":
+      statusColor = "bg-blue-500";
+      textColor = "text-blue-500";
+      statusText = "Solicitud de contrato";
+      break;
     default:
       statusColor = "bg-gray-500";
       textColor = "text-gray-500";
@@ -76,9 +157,24 @@ const StatusIndicator = ({ status }: { status: string }) => {
 
 /**
  * Componente para mostrar la miniatura de video con un placeholder
- * @returns Elemento JSX con placeholder de video
+ * @param urlVideo URL del video o imagen de portada
+ * @returns Elemento JSX con el video o placeholder
  */
-const VideoThumbnail = () => {
+const VideoThumbnail = ({ urlVideo }: { urlVideo?: string }) => {
+  // Si hay una URL de video/imagen, mostrarla; si no, mostrar placeholder
+  if (urlVideo) {
+    return (
+      <div className="aspect-video bg-[#ADADAD] rounded-lg mb-2 overflow-hidden">
+        <img 
+          src={urlVideo} 
+          alt="Video thumbnail" 
+          className="w-full h-full object-cover"
+        />
+      </div>
+    );
+  }
+  
+  // Mostrar placeholder si no hay URL de video/imagen
   return (
     <div className="aspect-video bg-[#ADADAD] rounded-lg flex items-center justify-center mb-2">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-12 h-12 text-white">
@@ -121,7 +217,7 @@ const ErrorState = ({ onRetry }: { onRetry: () => void }) => (
  * @param userProfile Datos del perfil de usuario
  * @returns Elemento JSX con la cabecera del perfil
  */
-const ProfileHeader = ({ userProfile }: { userProfile: UserProfileType }) => {
+const ProfileHeader = ({ userProfile }: { userProfile: IUser | null }) => {
   if (!userProfile) return null;
   
   return (
@@ -129,9 +225,9 @@ const ProfileHeader = ({ userProfile }: { userProfile: UserProfileType }) => {
       <div className="flex items-center mb-4">
         {/* Imagen de perfil */}
         <div className="w-20 h-20 rounded-full overflow-hidden">
-          {userProfile.profileImage ? (
+          {userProfile.photo ? (
             <img 
-              src={userProfile.profileImage} 
+              src={userProfile.photo} 
               alt={userProfile.name} 
               className="w-full h-full object-cover"
             />
@@ -214,11 +310,21 @@ const TabNavigation = ({
  * @returns Elemento JSX con la lista de creaciones
  */
 const CreationsList = ({ creations }: { creations: CreationType[] }) => {
+  if (creations.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <p className="text-[#555555] font-montserrat text-sm text-center">
+          No tienes creaciones aún
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {creations.map((creation) => (
         <div key={creation.id} className="bg-[#090619] rounded-xl overflow-hidden p-4 mb-4 border border-gray-800">
-          <VideoThumbnail />
+          <VideoThumbnail urlVideo={creation.thumbnail} />
           <h3 className="text-white text-lg font-semibold mb-1 font-montserrat">{creation.title}</h3>
           <p className="text-[#ADADAD] text-sm font-montserrat font-normal">{creation.description}</p>
         </div>
@@ -233,23 +339,46 @@ const CreationsList = ({ creations }: { creations: CreationType[] }) => {
  * @returns Elemento JSX con la lista de contratos
  */
 const ContractsList = ({ contracts }: { contracts: ContractType[] }) => {
+  if (contracts.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <p className="text-[#555555] font-montserrat text-sm text-center">
+          No tienes contratos aún
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
-      {contracts.map((contract) => (
-        <div key={contract.id} className="bg-[#2d2c30] rounded-xl overflow-hidden p-4 mb-4 border border-gray-800">
-          <h3 className="text-white text-lg font-semibold mb-1 font-montserrat">{contract.title}</h3>
-          <StatusIndicator status={contract.status} />
-          <p className="text-[#ADADAD] text-sm my-2 font-montserrat font-normal">{contract.description}</p>
-          <div className="flex justify-between items-center mt-3">
-            <span className="text-[#3E54F5] font-semibold font-montserrat">
-              <span className="font-light">$</span>{contract.price}
-            </span>
-            <Link 
-              href={`/contract/${contract.id}`}
-              className="px-4 py-1 bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white rounded-full text-sm font-medium font-montserrat"
-            >
-              ver
-            </Link>
+    <div className="space-y-4 p-2">
+      {contracts.map((contract, index) => (
+        <div key={index} className="bg-white rounded-lg p-4 shadow-sm">
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="text-[#090619] font-montserrat text-base font-medium">{contract.title}</h3>
+            <StatusIndicator status={contract.status} />
+          </div>
+          <p className="text-[#ADADAD] font-montserrat text-xs mb-3 line-clamp-2">
+            {contract.description}
+          </p>
+          <div className="flex justify-between items-center">
+            <p className="text-[#090619] font-montserrat text-xs">
+              Fecha límite: <span className="text-[#3E54F5]">{contract.deadline}</span>
+            </p>
+            {contract.status === 'contract_request' ? (
+              <Link 
+                href={`/accept-contract?id=${contract.id}`} 
+                className="bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white font-montserrat text-xs px-3 py-1 rounded-full"
+              >
+                Revisar
+              </Link>
+            ) : (
+              <Link 
+                href={`/contract/${contract.id}`} 
+                className="bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white font-montserrat text-xs px-3 py-1 rounded-full"
+              >
+                Ver
+              </Link>
+            )}
           </div>
         </div>
       ))}
@@ -267,8 +396,47 @@ export default function MyProfilePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  // Estado para los datos del perfil
-  const [userProfile, setUserProfile] = useState<UserProfileType>(null);
+  // Estado para los datos del perfil de usuario
+  const [userProfile, setUserProfile] = useState<IUser | null>(null);
+  
+  // Estado para las creaciones (videos) del usuario
+  const [creations, setCreations] = useState<CreationType[]>([]);
+  
+  // Estado para los contratos (aún mockupeados)
+  const [contracts, setContracts] = useState<ContractType[]>([
+    {
+      id: "contract-request-001",
+      title: "Edición de video para receta de cocina",
+      description: "Necesito edición para un video de cocina destinado a YouTube. El metraje en bruto dura aproximadamente 21 minutos. El objetivo es convertirlo en un video pulido y atractivo adecuado para una audiencia de YouTube.",
+      status: "contract_request",
+      deadline: "10/10/2023",
+      price: 4059
+    },
+    { 
+      id: "contract-001", 
+      title: "Edición de podcast semanal", 
+      status: "in_progress",
+      description: "Edición profesional de episodio semanal de podcast sobre tecnología. Incluye eliminación de ruidos, ecualización y ajuste de niveles...",
+      price: 2500,
+      deadline: "15/11/2023"
+    },
+    { 
+      id: "contract-002", 
+      title: "Creación de intro para canal", 
+      status: "completed",
+      description: "Creación de una introducción animada de 15 segundos con logo y música para canal de YouTube sobre viajes...",
+      price: 1800,
+      deadline: "05/10/2023"
+    },
+    { 
+      id: "contract-003", 
+      title: "Montaje de video promocional", 
+      status: "expires_soon",
+      description: "Montaje de material promocional para producto de cuidado personal. Debe incluir transiciones suaves y corrección de color...",
+      price: 3200,
+      deadline: "25/10/2023"
+    }
+  ]);
   
   // Estado para indicar carga de datos
   const [isLoading, setIsLoading] = useState(true);
@@ -291,66 +459,60 @@ export default function MyProfilePage() {
     setActiveView(view);
   };
 
-  // Cargar datos del perfil de usuario
+  // Cargar datos del perfil de usuario y sus creaciones
   useEffect(() => {
-    const loadUserData = () => {
+    const loadUserData = async () => {
       // Registrar inicio de carga de datos
       console.log("Cargando datos del perfil de usuario...");
+      setIsLoading(true);
       
-      // Simular retraso de llamada a API
-      setTimeout(() => {
-        // Datos simulados - en una app real, esto vendría de una API
-        setUserProfile({
-          id: "user-001",
-          name: "Fransctis",
-          description: "Apasionado chef casero compartiendo recetas sabrosas, trucos de cocina y contenido lleno de sabor directo de la cocina a tu pantalla.",
-          profileImage: "",
-          creations: [
-            { 
-              id: "creation-001", 
-              title: "Cocinando Ramen Japonés", 
-              thumbnail: "", 
-              description: "Una guía paso a paso para hacer ramen auténtico en casa."
-            },
-            { 
-              id: "creation-002", 
-              title: "Receta de Pho Vietnamita", 
-              thumbnail: "", 
-              description: "Aprende a cocinar pho vietnamita tradicional con ingredientes frescos."
-            }
-          ],
-          contracts: [
-            { 
-              id: "contract-001", 
-              title: "Video vlog de Japón", 
-              status: "in_progress", 
-              description: "Edición de video en bruto, para crear dos videos de YouTube...",
-              price: 300
-            },
-            { 
-              id: "contract-002", 
-              title: "Video vlog de Vietnam", 
-              status: "completed", 
-              description: "Edición de video en bruto, para crear dos videos de YouTube...",
-              price: 300
-            },
-            { 
-              id: "contract-003", 
-              title: "Video de Tiktok", 
-              status: "expires_soon", 
-              description: "Edición de video en bruto...",
-              price: 150
-            }
-          ]
-        });
+      try {
+        // Obtener dirección del usuario
+        const userAddress = getUserAddress();
+        console.log("Dirección de usuario:", userAddress);
+        
+        // Obtener datos del usuario
+        const userResponse = await getUser({ address: userAddress });
+        if (userResponse.error) {
+          throw new Error("Error al cargar datos de usuario");
+        }
+        
+        console.log("Datos de usuario:", userResponse.user);
+        setUserProfile(userResponse.user);
+        
+        // Obtener videos del usuario
+        const videosResponse = await getVideosByAuthor({ address: userAddress });
+        if (videosResponse.error) {
+          throw new Error("Error al cargar videos del usuario");
+        }
+        
+        // Convertir IVideo[] a CreationType[] para mantener compatibilidad
+        const creationsData = videosResponse.videos.map(video => ({
+          id: video.id,
+          title: video.title,
+          description: video.description,
+          thumbnail: video.urlVideo
+        }));
+        
+        console.log("Videos del usuario:", creationsData);
+        setCreations(creationsData);
         
         setIsLoading(false);
-        console.log("Datos de perfil de usuario cargados exitosamente");
-      }, 500);
+        console.log("Datos de perfil y creaciones cargados exitosamente");
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+        setIsLoading(false);
+      }
     };
     
     loadUserData();
   }, []);
+
+  // Función para reintentar la carga de datos si hay error
+  const handleRetry = () => {
+    setIsLoading(true);
+    // El useEffect se ejecutará de nuevo al cambiar isLoading
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-[#090619] font-montserrat">
@@ -385,17 +547,17 @@ export default function MyProfilePage() {
             
             {/* Contenido basado en la vista activa */}
             {activeView === "creations" ? (
-              // Vista de Creaciones
-              <CreationsList creations={userProfile.creations} />
+              // Vista de Creaciones - ahora usando datos reales
+              <CreationsList creations={creations} />
             ) : (
-              // Vista de Contratos
-              <ContractsList contracts={userProfile.contracts} />
+              // Vista de Contratos - aún usando datos mockupeados
+              <ContractsList contracts={contracts} />
             )}
           </div>
         </>
       ) : (
         // Estado de error
-        <ErrorState onRetry={() => setIsLoading(true)} />
+        <ErrorState onRetry={handleRetry} />
       )}
       
       {/* Navegación inferior con prop de vista activa */}
