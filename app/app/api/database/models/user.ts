@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, models } from "mongoose";
 
 export interface IUser {
     address: string;
@@ -6,8 +6,8 @@ export interface IUser {
     description: string;
     photo: string;
     state: boolean;
-    // hiringAvailability: boolean;
-    // score: number; // This is the score of the user del 1 al 5 float
+    hiringAvailability: boolean;
+    score: number; // This is the score of the user del 1 al 5 float
 }
 
 const UserSchema = new Schema<IUser>({
@@ -30,6 +30,14 @@ const UserSchema = new Schema<IUser>({
     state: {
         type: Boolean,
         default: true
+    },
+    hiringAvailability: {
+        type: Boolean,
+        default: false
+    },
+    score: {
+        type: Number,
+        default: 4.5
     }
 })
 
@@ -39,4 +47,6 @@ const UserSchema = new Schema<IUser>({
 //     return usuario;
 // }
 
-export default model('User', UserSchema)
+const User = models.User || model('User', UserSchema);
+
+export default User;

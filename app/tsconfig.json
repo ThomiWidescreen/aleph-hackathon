@@ -21,6 +21,7 @@
       "@/*": ["./*"],
       "@database/*": ["./app/api/database/*"],
       "@actions/*": ["./app/api/actions/*"],
+      "@ahelpers/*": ["./app/api/helpers/*"],
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

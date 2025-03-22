@@ -1,6 +1,7 @@
 import { Schema, model, models } from "mongoose";
 
 interface IVideo {
+    id: string,
     title: string;
     description: string;
     category: string;

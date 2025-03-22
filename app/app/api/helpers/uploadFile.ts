@@ -23,7 +23,7 @@ const verifyCloudinaryConnection = async (): Promise<boolean> => {
     }
 };
 
-// Upload an image
+// Upload an video
 export const uploadFile = async (file: string) => {
 
     const conection = await verifyCloudinaryConnection();
@@ -50,3 +50,33 @@ export const uploadFile = async (file: string) => {
         console.error("Error completo de Cloudinary:", error);
     }
 }
+
+
+// Upload foto de perfil
+export const uploadPhotoProfile = async (file: string) => {
+
+    const conection = await verifyCloudinaryConnection();
+
+    if (!conection) {
+        return;
+    }
+    
+    try {
+        const uploadResult = await cloudinary.uploader
+            .upload(file, {
+                resource_type: "image"
+            }
+        );
+        // console.log(uploadResult);
+
+        if (!uploadResult.url) {
+            throw new Error("No se pudo subir el archivo");
+        }
+
+        return uploadResult.url;
+        
+    } catch (error) {
+        console.error("Error completo de Cloudinary:", error);
+    }
+}
+

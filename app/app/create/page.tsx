@@ -149,6 +149,8 @@ export default function CreateVideoPage() {
       // and save the video metadata to your database
       console.log("Uploading video:", { ...video, file });
       
+
+      //TODO: authorAddress traer de la blockchain
       // Simulate delay
       await createVideo({
         title: video.title,
