@@ -7,7 +7,7 @@ interface Props {
 }
 
 
-export const createUser = async({ address }: Props) => {
+export const getUser = async({ address }: Props) => {
     console.log({address})
     
     try {

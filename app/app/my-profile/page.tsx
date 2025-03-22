@@ -5,6 +5,10 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from 'next/navigation';
 import config from "../../@config.json";
 import BottomNav from "../../components/BottomNav";
+import { getUser } from "../api/actions/users/getUser";
+import { getVideosByAuthor } from "../api/actions/file/getVideosByAuthor";
+import { getUserAddress } from "../api/helpers/getUserAddress";
+import VideoThumbnail from "./videoThumbnail";
 
 /**
  * Interfaces para los datos de usuario y videos
@@ -55,60 +59,8 @@ type CreationType = {
  * Simulación de la función para obtener dirección de usuario
  * En una implementación real, esto obtendría la dirección del wallet conectado
  */
-const getUserAddress = (): string => {
-  return "0x1234567890abcdef1234567890abcdef12345678"; // Dirección de ejemplo
-};
 
-/**
- * Simulación de función para obtener datos de usuario
- * En una implementación real, esto haría una llamada a la API
- */
-const getUser = async ({ address }: { address: string }): Promise<{ user: IUser; error?: string }> => {
-  // Simular respuesta exitosa de la API con datos de usuario
-  return {
-    user: {
-      address: address,
-      name: "Fransctis",
-      description: "Apasionado chef casero compartiendo recetas sabrosas, trucos de cocina y contenido lleno de sabor directo de la cocina a tu pantalla.",
-      photo: "",
-      state: true,
-      hiringAvailability: true,
-      score: 4.8
-    }
-  };
-};
 
-/**
- * Simulación de función para obtener videos del autor
- * En una implementación real, esto haría una llamada a la API
- */
-const getVideosByAuthor = async ({ address }: { address: string }): Promise<{ videos: IVideo[]; error?: string }> => {
-  // Simular respuesta exitosa de la API con datos de videos
-  return {
-    videos: [
-      { 
-        id: "video-001", 
-        title: "Cocinando Ramen Japonés", 
-        description: "Una guía paso a paso para hacer ramen auténtico en casa.",
-        category: "Cooking",
-        price: 0,
-        tags: ["cooking", "japanese", "ramen"],
-        authorAddress: address,
-        urlVideo: "" // URL vacía para provocar el uso del placeholder
-      },
-      { 
-        id: "video-002", 
-        title: "Receta de Pho Vietnamita", 
-        description: "Aprende a cocinar pho vietnamita tradicional con ingredientes frescos.",
-        category: "Cooking",
-        price: 0,
-        tags: ["cooking", "vietnamese", "pho"],
-        authorAddress: address,
-        urlVideo: "" // URL vacía para provocar el uso del placeholder
-      }
-    ]
-  };
-};
 
 /**
  * Componente para mostrar el indicador de estado de contrato
@@ -151,35 +103,6 @@ const StatusIndicator = ({ status }: { status: string }) => {
     <div className="flex items-center gap-1.5">
       <div className={`w-3 h-3 rounded-full ${statusColor}`}></div>
       <span className={`text-sm font-normal font-montserrat ${textColor}`}>{statusText}</span>
-    </div>
-  );
-};
-
-/**
- * Componente para mostrar la miniatura de video con un placeholder
- * @param urlVideo URL del video o imagen de portada
- * @returns Elemento JSX con el video o placeholder
- */
-const VideoThumbnail = ({ urlVideo }: { urlVideo?: string }) => {
-  // Si hay una URL de video/imagen, mostrarla; si no, mostrar placeholder
-  if (urlVideo) {
-    return (
-      <div className="aspect-video bg-[#ADADAD] rounded-lg mb-2 overflow-hidden">
-        <img 
-          src={urlVideo} 
-          alt="Video thumbnail" 
-          className="w-full h-full object-cover"
-        />
-      </div>
-    );
-  }
-  
-  // Mostrar placeholder si no hay URL de video/imagen
-  return (
-    <div className="aspect-video bg-[#ADADAD] rounded-lg flex items-center justify-center mb-2">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-12 h-12 text-white">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
     </div>
   );
 };
@@ -481,7 +404,8 @@ export default function MyProfilePage() {
         setUserProfile(userResponse.user);
         
         // Obtener videos del usuario
-        const videosResponse = await getVideosByAuthor({ address: userAddress });
+
+        const videosResponse = await getVideosByAuthor( userAddress );
         if (videosResponse.error) {
           throw new Error("Error al cargar videos del usuario");
         }

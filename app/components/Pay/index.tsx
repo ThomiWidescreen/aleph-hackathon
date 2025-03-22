@@ -11,7 +11,7 @@ import { createUser } from "@actions/users/createUser";
 import UploadVideo from "../UploadVideo";
 import { createVideo } from "@actions/file/createVideo";
 import { getVideoDetail } from "@/app/api/actions/file/getVideoDetail";
-import { getVideos } from "@/app/api/actions/file/getVideosByAuthor";
+import { getVideos, getVideosByAuthor } from "@/app/api/actions/file/getVideosByAuthor";
 import { create } from "node:domain";
 import { getUsersByName } from "@/app/api/actions/users/getUsersByName";
 import { getVideosByQuery } from "@/app/api/actions/file/getVideosByQuery";
@@ -91,7 +91,7 @@ export const PayBlock = () => {
         Get VideoDetail
       </button>
       <button className="bg-blue-500 p-4" onClick={async() => {
-           const videos = await getVideos("0x0c892815f0B058E69987920A23FBb33c834289cf")
+           const videos = await getVideosByAuthor("0x0c892815f0B058E69987920A23FBb33c834289cf")
            console.log(videos)
            }}>
         Get Videos por author

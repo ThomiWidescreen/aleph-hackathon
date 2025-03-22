@@ -15,7 +15,7 @@ export default function CreateVideoPage() {
     title: "",
     description: "",
     category: "",
-    price: 0,
+    price: "",
     tags: [],
   });
   
