@@ -1,30 +1,53 @@
 # Documentación de Cambios Recientes
 
-## Funcionalidades de Contratos
+### Funcionalidades de Contratos Implementadas
 
-### Páginas Implementadas
+Se han implementado las siguientes páginas relacionadas con la funcionalidad de contratos:
 
-1. **Página de Creación de Contrato (`/create-contract`)**
-   - Formulario completo para crear contratos
-   - Campos implementados:
-     - Título del contrato
-     - Descripción detallada
-     - Fecha límite con selector de calendario
-     - Pago final (monto)
-     - Compromiso mínimo (porcentaje)
-   - Selector de divisa (WLD o USDC)
-   - Validación de formularios
+1. **Página de Creación de Contrato (`/create-contract`)**: Permite a los usuarios crear contratos especificando título, descripción, fecha límite, monto y moneda.
 
-2. **Página de Aceptación de Contrato (`/accept-contract`)**
-   - Visualización de detalles del contrato pendiente
-   - Interfaz para revisar términos
-   - Botón de aceptación con modal de confirmación
-   - Redirección adecuada tras aceptación
+2. **Página de Aceptación de Contrato (`/accept-contract`)**: Permite a los usuarios revisar y aceptar contratos pendientes. Incluye un modal de confirmación.
 
-3. **Página de Perfil - Sección de Contratos (`/my-profile?view=contracts`)**
-   - Lista de contratos del usuario
-   - Nuevo estado visual para contratos pendientes de aceptación
-   - Enlace a detalles de cada contrato
+3. **Página Unificada de Detalles de Contrato (`/contract/[id]`)**: Nueva página que reemplaza y mejora la funcionalidad de aceptación de contrato, proporcionando una vista adaptativa para todos los estados de contrato (Pendiente, Aceptado, Rechazado, Completado, Fallido, Disputa). Esta página muestra acciones específicas según el estado del contrato y simplifica la gestión del ciclo de vida completo de los contratos.
+
+4. **Página de Perfil - Sección de Contratos (`/my-profile?view=contracts`)**: Muestra una lista de los contratos del usuario con un nuevo estado para los contratos pendientes de aceptación. Ahora los contratos redirigen a la nueva página unificada de detalles de contrato.
+
+#### Flujo de Trabajo para Contratos
+
+El flujo de trabajo para contratos se ha implementado con los siguientes pasos:
+
+1. **Creación**: Un usuario crea un contrato desde la página de creación de contrato.
+2. **Solicitud**: El contrato se registra en estado "Pendiente" y aparece en la lista de contratos del receptor.
+3. **Revisión**: El receptor puede ver el contrato en su perfil y acceder a los detalles completos.
+4. **Acción**: Desde la página de detalles del contrato, el receptor puede:
+   - Aceptar el contrato si está pendiente, lo que cambia su estado a "Aceptado"
+   - Marcar como completado un contrato que está en progreso
+   - Ver detalles completos de contratos completados o rechazados
+   - Gestionar disputas cuando sea necesario
+5. **Adaptabilidad**: La interfaz se adapta automáticamente para mostrar diferentes acciones según el estado actual del contrato.
+6. **Confirmación**: Todos los cambios de estado se confirman mediante un modal para prevenir acciones accidentales.
+
+### Mejoras en la Interfaz de Usuario
+
+Las mejoras implementadas en la interfaz incluyen:
+
+1. **Diseño Consistente**: Se han aplicado estilos consistentes a través de todas las páginas.
+2. **Gradientes de Color**: Se utilizan gradientes de azul a púrpura para botones y elementos destacados.
+3. **Estilos Redondeados**: Se utilizan bordes redondeados para tarjetas, botones y contenedores.
+4. **Modales de Confirmación**: Se han implementado modales para confirmar acciones importantes.
+5. **Indicadores de Estado**: Se utilizan colores específicos para indicar el estado de los contratos.
+6. **Información Contextual**: Cada página proporciona información relevante según el contexto.
+7. **Feedback Visual**: Los botones y acciones tienen estados de carga para mejorar el feedback al usuario.
+
+### Próximos Pasos
+
+Los siguientes pasos para completar la funcionalidad incluyen:
+
+1. Implementar la lógica de backend para la gestión de contratos.
+2. Integrar el sistema de notificaciones para informar sobre cambios en los contratos.
+3. Implementar la página de detalle completo del contrato con historial de cambios.
+4. Desarrollar el sistema de pagos y depósitos en garantía.
+5. Implementar el sistema de resolución de disputas.
 
 ## Funcionalidades de Creación de Contenido
 
@@ -93,14 +116,6 @@
    - Implementación utilizando la configuración centralizada para rutas
    - Indicadores visuales de navegación activa
 
-## Flujo de Trabajo para Contratos
-
-1. **Creación**: Usuario crea contrato en `/create-contract`
-2. **Solicitud**: El contrato aparece en el perfil del destinatario con estado "contract_request"
-3. **Aceptación**: Destinatario revisa y acepta en `/accept-contract`, mostrando un modal de confirmación
-4. **Progreso**: Al aceptar, el contrato cambia a estado "in_progress"
-5. **Finalización**: Al completarse, el contrato pasa a estado "completed"
-
 ## Mejoras en la Interfaz de Usuario
 
 1. **Diseño Consistente**
@@ -148,4 +163,14 @@
 5. **Vista Previa de Video**
    - Añadir reproductor para previsualizar videos subidos
    - Controles de reproducción
-   - Miniatura automática 
+   - Miniatura automática
+
+6. **Implementar la lógica de backend para la gestión de contratos**
+
+7. **Integrar el sistema de notificaciones para informar sobre cambios en los contratos**
+
+8. **Implementar la página de detalle completo del contrato con historial de cambios**
+
+9. **Desarrollar el sistema de pagos y depósitos en garantía**
+
+10. **Implementar el sistema de resolución de disputas** 

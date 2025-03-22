@@ -116,6 +116,15 @@ Este proyecto es una aplicación web progresiva (PWA) que funciona como un marke
 - Envío de nuevos mensajes con feedback inmediato
 - Scroll automático al último mensaje
 
+### Pantalla de Detalles de Contrato
+- Vista unificada para contratos en cualquier estado (Pendiente, Aceptado, Rechazado, Completado, Fallido, Disputa)
+- Reemplaza la funcionalidad de aceptar contrato anterior
+- Interfaz adaptativa que muestra diferentes acciones según el estado
+- Información detallada incluyendo título, descripción, plazos y pagos
+- Sistema de confirmación modal para acciones críticas
+- Indicadores visuales de estado con códigos de color
+- Diseño adaptable basado en principios de la UX
+
 ## Estructura de archivos
 
 ```
@@ -140,7 +149,10 @@ aleph-hackathon/
 │   ├── create-contract/
 │   │   └── page.tsx       # Formulario para crear contratos
 │   ├── accept-contract/
-│   │   └── page.tsx       # Vista para aceptar/rechazar contratos
+│   │   └── page.tsx       # Vista antigua para aceptar/rechazar contratos (a reemplazar)
+│   ├── contract/
+│   │   └── [id]/
+│   │       └── page.tsx   # Nueva vista unificada de detalles de contrato
 │   ├── create/
 │   │   └── page.tsx       # Formulario para subir videos
 │   ├── contracts/

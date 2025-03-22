@@ -275,7 +275,8 @@
     "createContract": "/create-contract",
     "acceptContract": "/accept-contract",
     "createVideo": "/create-video",
-    "uploadProject": "/upload-project"
+    "uploadProject": "/upload-project",
+    "contractDetails": "/contract"
   },
   "currency": {
     "options": ["WLD", "USDC"]

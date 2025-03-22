@@ -31,9 +31,9 @@ export interface IVideo {
 }
 
 /**
- * Tipos para el estado de contratos (aún mockupeados)
+ * Tipos para el estado de contratos (alineados con estados on-chain)
  */
-type ContractStatus = "in_progress" | "completed" | "expires_soon" | "contract_request";
+type ContractStatus = "Pending" | "Accepted" | "Completed" | "Declined" | "Failed" | "Dispute";
 type ContractType = {
   id: string;
   title: string;
@@ -69,7 +69,7 @@ const getUser = async ({ address }: { address: string }): Promise<{ user: IUser;
     user: {
       address: address,
       name: "Fransctis",
-      description: "Apasionado chef casero compartiendo recetas sabrosas, trucos de cocina y contenido lleno de sabor directo de la cocina a tu pantalla.",
+      description: "Passionate home chef sharing delicious recipes, cooking tricks, and flavorful content straight from the kitchen to your screen.",
       photo: "",
       state: true,
       hiringAvailability: true,
@@ -88,8 +88,8 @@ const getVideosByAuthor = async ({ address }: { address: string }): Promise<{ vi
     videos: [
       { 
         id: "video-001", 
-        title: "Cocinando Ramen Japonés", 
-        description: "Una guía paso a paso para hacer ramen auténtico en casa.",
+        title: "Cooking Japanese Ramen", 
+        description: "A step-by-step guide to making authentic ramen at home.",
         category: "Cooking",
         price: 0,
         tags: ["cooking", "japanese", "ramen"],
@@ -98,8 +98,8 @@ const getVideosByAuthor = async ({ address }: { address: string }): Promise<{ vi
       },
       { 
         id: "video-002", 
-        title: "Receta de Pho Vietnamita", 
-        description: "Aprende a cocinar pho vietnamita tradicional con ingredientes frescos.",
+        title: "Vietnamese Pho Recipe", 
+        description: "Learn to cook traditional Vietnamese pho with fresh ingredients.",
         category: "Cooking",
         price: 0,
         tags: ["cooking", "vietnamese", "pho"],
@@ -112,7 +112,7 @@ const getVideosByAuthor = async ({ address }: { address: string }): Promise<{ vi
 
 /**
  * Componente para mostrar el indicador de estado de contrato
- * @param status Estado del contrato (en progreso, completado, expira pronto)
+ * @param status Estado del contrato
  * @returns Elemento JSX con el indicador visual de estado
  */
 const StatusIndicator = ({ status }: { status: string }) => {
@@ -121,30 +121,40 @@ const StatusIndicator = ({ status }: { status: string }) => {
   let statusText = "";
   
   switch (status) {
-    case "in_progress":
+    case "Pending":
       statusColor = "bg-yellow-500";
       textColor = "text-yellow-500";
-      statusText = "En progreso";
+      statusText = "Pending";
       break;
-    case "completed":
-      statusColor = "bg-green-500";
-      textColor = "text-green-500";
-      statusText = "Completado";
-      break;
-    case "expires_soon":
-      statusColor = "bg-orange-500";
-      textColor = "text-orange-500";
-      statusText = "Expira pronto";
-      break;
-    case "contract_request":
+    case "Accepted":
       statusColor = "bg-blue-500";
       textColor = "text-blue-500";
-      statusText = "Solicitud de contrato";
+      statusText = "In progress";
+      break;
+    case "Completed":
+      statusColor = "bg-green-500";
+      textColor = "text-green-500";
+      statusText = "Completed";
+      break;
+    case "Declined":
+      statusColor = "bg-red-500";
+      textColor = "text-red-500";
+      statusText = "Declined";
+      break;
+    case "Failed":
+      statusColor = "bg-red-500";
+      textColor = "text-red-500";
+      statusText = "Failed";
+      break;
+    case "Dispute":
+      statusColor = "bg-orange-500";
+      textColor = "text-orange-500";
+      statusText = "In dispute";
       break;
     default:
       statusColor = "bg-gray-500";
       textColor = "text-gray-500";
-      statusText = "Desconocido";
+      statusText = "Unknown";
   }
   
   return (
@@ -205,9 +215,9 @@ const LoadingState = () => (
  */
 const ErrorState = ({ onRetry }: { onRetry: () => void }) => (
   <div className="flex-grow flex flex-col items-center justify-center p-4">
-    <p className="text-[#ADADAD] mb-4 font-montserrat">No se pudo cargar el perfil</p>
+    <p className="text-[#ADADAD] mb-4 font-montserrat">Failed to load profile</p>
     <button onClick={onRetry} className="text-[#3E54F5] font-montserrat">
-      Reintentar
+      Retry
     </button>
   </div>
 );
@@ -247,7 +257,7 @@ const ProfileHeader = ({ userProfile }: { userProfile: IUser | null }) => {
             href="/edit-profile"
             className="px-4 py-1 bg-white text-[#090619] rounded-full text-sm font-medium inline-block font-montserrat w-[85%] text-center flex items-center justify-center"
           >
-            Editar
+            Edit
           </Link>
         </div>
       </div>
@@ -283,7 +293,7 @@ const TabNavigation = ({
         onClick={() => onViewChange("contracts")}
       >
         <span className={activeView === "contracts" ? "bg-gradient-to-r from-[#3E54F5] to-[#631497] bg-clip-text text-transparent" : ""}>
-          Contratos
+          Contracts
         </span>
       </button>
       
@@ -297,7 +307,7 @@ const TabNavigation = ({
         onClick={() => onViewChange("creations")}
       >
         <span className={activeView === "creations" ? "bg-gradient-to-r from-[#3E54F5] to-[#631497] bg-clip-text text-transparent" : ""}>
-          Creaciones
+          Creations
         </span>
       </button>
     </div>
@@ -314,7 +324,7 @@ const CreationsList = ({ creations }: { creations: CreationType[] }) => {
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <p className="text-[#555555] font-montserrat text-sm text-center">
-          No tienes creaciones aún
+          You don't have any creations yet
         </p>
       </div>
     );
@@ -343,7 +353,7 @@ const ContractsList = ({ contracts }: { contracts: ContractType[] }) => {
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <p className="text-[#555555] font-montserrat text-sm text-center">
-          No tienes contratos aún
+          You don't have any contracts yet
         </p>
       </div>
     );
@@ -362,23 +372,14 @@ const ContractsList = ({ contracts }: { contracts: ContractType[] }) => {
           </p>
           <div className="flex justify-between items-center">
             <p className="text-[#090619] font-montserrat text-xs">
-              Fecha límite: <span className="text-[#3E54F5]">{contract.deadline}</span>
+              Deadline: <span className="text-[#3E54F5]">{contract.deadline}</span>
             </p>
-            {contract.status === 'contract_request' ? (
-              <Link 
-                href={`/accept-contract?id=${contract.id}`} 
-                className="bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white font-montserrat text-xs px-3 py-1 rounded-full"
-              >
-                Revisar
-              </Link>
-            ) : (
-              <Link 
-                href={`/contract/${contract.id}`} 
-                className="bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white font-montserrat text-xs px-3 py-1 rounded-full"
-              >
-                Ver
-              </Link>
-            )}
+            <Link 
+              href={`${config.routes.contractDetails}/${contract.id}`} 
+              className="bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white font-montserrat text-xs px-3 py-1 rounded-full"
+            >
+              {contract.status === 'Pending' ? 'Review' : 'View'}
+            </Link>
           </div>
         </div>
       ))}
@@ -406,34 +407,34 @@ export default function MyProfilePage() {
   const [contracts, setContracts] = useState<ContractType[]>([
     {
       id: "contract-request-001",
-      title: "Edición de video para receta de cocina",
-      description: "Necesito edición para un video de cocina destinado a YouTube. El metraje en bruto dura aproximadamente 21 minutos. El objetivo es convertirlo en un video pulido y atractivo adecuado para una audiencia de YouTube.",
-      status: "contract_request",
+      title: "The best contract ever",
+      description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
+      status: "Pending",
       deadline: "10/10/2023",
       price: 4059
     },
     { 
-      id: "contract-001", 
-      title: "Edición de podcast semanal", 
-      status: "in_progress",
-      description: "Edición profesional de episodio semanal de podcast sobre tecnología. Incluye eliminación de ruidos, ecualización y ajuste de niveles...",
-      price: 2500,
+      id: "contract-in_progress-001", 
+      title: "The best contract ever", 
+      status: "Accepted",
+      description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
+      price: 4059,
       deadline: "15/11/2023"
     },
     { 
-      id: "contract-002", 
-      title: "Creación de intro para canal", 
-      status: "completed",
-      description: "Creación de una introducción animada de 15 segundos con logo y música para canal de YouTube sobre viajes...",
-      price: 1800,
+      id: "contract-completed-001", 
+      title: "The best contract ever", 
+      status: "Completed",
+      description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
+      price: 4059,
       deadline: "05/10/2023"
     },
     { 
-      id: "contract-003", 
-      title: "Montaje de video promocional", 
-      status: "expires_soon",
-      description: "Montaje de material promocional para producto de cuidado personal. Debe incluir transiciones suaves y corrección de color...",
-      price: 3200,
+      id: "contract-expires_soon-001", 
+      title: "The best contract ever", 
+      status: "Dispute",
+      description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
+      price: 4059,
       deadline: "25/10/2023"
     }
   ]);
@@ -463,27 +464,27 @@ export default function MyProfilePage() {
   useEffect(() => {
     const loadUserData = async () => {
       // Registrar inicio de carga de datos
-      console.log("Cargando datos del perfil de usuario...");
+      console.log("Loading user profile data...");
       setIsLoading(true);
       
       try {
         // Obtener dirección del usuario
         const userAddress = getUserAddress();
-        console.log("Dirección de usuario:", userAddress);
+        console.log("User address:", userAddress);
         
         // Obtener datos del usuario
         const userResponse = await getUser({ address: userAddress });
         if (userResponse.error) {
-          throw new Error("Error al cargar datos de usuario");
+          throw new Error("Error loading user data");
         }
         
-        console.log("Datos de usuario:", userResponse.user);
+        console.log("User data:", userResponse.user);
         setUserProfile(userResponse.user);
         
         // Obtener videos del usuario
         const videosResponse = await getVideosByAuthor({ address: userAddress });
         if (videosResponse.error) {
-          throw new Error("Error al cargar videos del usuario");
+          throw new Error("Error loading user videos");
         }
         
         // Convertir IVideo[] a CreationType[] para mantener compatibilidad
@@ -494,13 +495,13 @@ export default function MyProfilePage() {
           thumbnail: video.urlVideo
         }));
         
-        console.log("Videos del usuario:", creationsData);
+        console.log("User videos:", creationsData);
         setCreations(creationsData);
         
         setIsLoading(false);
-        console.log("Datos de perfil y creaciones cargados exitosamente");
+        console.log("Profile data and creations loaded successfully");
       } catch (error) {
-        console.error("Error al cargar datos:", error);
+        console.error("Error loading data:", error);
         setIsLoading(false);
       }
     };
