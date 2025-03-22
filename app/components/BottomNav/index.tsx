@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import config from '../../@config.json';
 
 /**
@@ -12,162 +13,123 @@ import config from '../../@config.json';
 export default function BottomNav() {
   const pathname = usePathname();
   
-  // Icon components for the nav items
-  const navIcons = {
-    feed: (isActive: boolean) => (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        viewBox="0 0 24 24" 
-        fill={isActive ? "currentColor" : "none"}
-        stroke="currentColor" 
-        className="w-6 h-6"
-      >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={isActive ? 0 : 1.5}
-          d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" 
-        />
-      </svg>
-    ),
-    search: (isActive: boolean) => (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        viewBox="0 0 24 24" 
-        fill={isActive ? "currentColor" : "none"}
-        stroke="currentColor" 
-        className="w-6 h-6"
-      >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={isActive ? 0 : 1.5}
-          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
-        />
-      </svg>
-    ),
-    create: (isActive: boolean) => (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        viewBox="0 0 24 24" 
-        fill={isActive ? "currentColor" : "none"}
-        stroke="currentColor" 
-        className="w-6 h-6"
-      >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={isActive ? 0 : 1.5}
-          d="M12 4v16m8-8H4" 
-        />
-      </svg>
-    ),
-    contracts: (isActive: boolean) => (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        viewBox="0 0 24 24" 
-        fill={isActive ? "currentColor" : "none"}
-        stroke="currentColor" 
-        className="w-6 h-6"
-      >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={isActive ? 0 : 1.5}
-          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
-        />
-      </svg>
-    ),
-    profile: (isActive: boolean) => (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        viewBox="0 0 24 24" 
-        fill={isActive ? "currentColor" : "none"}
-        stroke="currentColor" 
-        className="w-6 h-6"
-      >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={isActive ? 0 : 1.5}
-          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" 
-        />
-      </svg>
-    ),
+  // Define types for navigation items
+  type NavItem = {
+    name: string;
+    href: string;
   };
 
-  // Map of routes to item names
-  const routeToItemMap: {[key: string]: string} = {
-    "/feed": "feed",
-    "/search": "search",
-    "/create": "create",
-    "/my-profile": "profile",
-    // Add mappings for contracts pages
-    "/create-contract": "contracts",
-    "/accept-contract": "contracts",
+  // Define routes mapping
+  const routes: Record<string, string> = {
+    '/feed': 'Feed',
+    '/search': 'Search',
+    '/create': 'Create',
+    '/contracts': 'Contracts',
+    '/profile': 'Profile',
   };
-  
+
   /**
-   * Check if a nav item is active based on the current path
-   * For contracts section, check multiple possible routes
+   * Check if a navigation item is active based on the current pathname
+   * @param currentPath - The current pathname
+   * @param itemPath - The navigation item path
+   * @returns Whether the navigation item is active
    */
-  const isItemActive = (route: string) => {
-    const basePathname = pathname.split('?')[0]; // Remove query params for comparison
-    
-    if (route === "/feed" && basePathname === "/") {
-      return true; // Home page also highlights feed
-    }
-    
-    if (routeToItemMap[basePathname] && routeToItemMap[route] && 
-        routeToItemMap[basePathname] === routeToItemMap[route]) {
+  const isActive = (currentPath: string, itemPath: string): boolean => {
+    // Special case for feed (home)
+    if (itemPath === '/feed' && currentPath === '/') {
       return true;
     }
     
-    return basePathname === route;
+    // Normal case - check if current path starts with item path
+    return currentPath.startsWith(itemPath);
   };
 
-  /**
-   * Render the icon for a nav item, using the mapping if available
-   */
-  const renderNavIcon = (name: string, isActive: boolean) => {
-    // @ts-ignore - We know these keys exist
-    const IconComponent = navIcons[name.toLowerCase()];
-    
-    if (IconComponent) {
-      return IconComponent(isActive);
-    }
-    
-    // Fallback icon if not found in the mapping
-    return (
-      <div className={`w-6 h-6 rounded-full ${isActive ? 'bg-blue-500' : 'bg-gray-200'}`}></div>
-    );
-  };
-
-  // Log the current path for debugging
-  console.log('Current path:', pathname);
+  // Create navigation items array from routes
+  const navItems: NavItem[] = Object.entries(routes).map(([href, name]) => ({
+    name,
+    href,
+  }));
 
   return (
-    <nav className="sticky bottom-0 bg-white border-t border-gray-200 p-2 mt-auto z-10">
-      <div className="flex justify-around items-center">
-        {config.screens.bottomNav.items.map((item, index) => {
-          const isActive = isItemActive(item.route);
+    <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-[#FFFFFF] border-t border-gray-100 dark:bg-[#FFFFFF] dark:border-gray-100 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+      {/* Botón Create posicionado para que quede a la mitad entre el contenido y el footer */}
+      <div className="absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 top-0 z-10">
+        <Link
+          href="/create"
+          className="inline-flex flex-col items-center justify-center"
+        >
+          <div className="w-[50px] h-[50px] rounded-full flex items-center justify-center bg-gradient-to-br from-[#631497] to-[#3E54F5] shadow-lg">
+            <Image 
+              src="/icons/plus.svg"
+              width={30}
+              height={30}
+              alt="Create"
+            />
+          </div>
+        </Link>
+      </div>
+
+      <div className="grid h-full max-w-lg grid-cols-5 mx-auto">
+        {navItems.map((item, index) => {
+          const active = isActive(pathname, item.href);
+          
+          // Special case for Create button - now just a placeholder to maintain grid structure
+          if (item.name === 'Create') {
+            return (
+              <div key={item.name} className="inline-flex flex-col items-center justify-center px-5 relative">
+                {/* Espacio vacío para mantener la estructura de la grid */}
+              </div>
+            );
+          }
           
           return (
-            <Link 
-              href={item.route} 
-              key={index}
-              className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
-                isActive 
-                  ? 'text-blue-600' 
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-              }`}
+            <Link
+              key={item.name}
+              href={item.href}
+              className="inline-flex flex-col items-center justify-center px-5"
             >
-              {renderNavIcon(item.name, isActive)}
-              <span className="text-xs mt-1 font-medium">{item.name}</span>
+              <div className="flex items-center justify-center">
+                <Image 
+                  src={`/icons/${getIconName(item.name)}.svg`}
+                  width={30}
+                  height={30}
+                  alt={`${item.name} icon`}
+                  className={active ? 'active-icon' : ''}
+                />
+              </div>
             </Link>
           );
         })}
       </div>
-    </nav>
+      
+      <style jsx global>{`
+        .active-icon path {
+          stroke: #3E54F5;
+        }
+        .active-icon circle, .active-icon path[fill="#ADADAD"] {
+          fill: #3E54F5;
+        }
+      `}</style>
+    </div>
   );
+}
+
+/**
+ * Helper function to get the icon name based on the navigation item name
+ * @param itemName - The navigation item name
+ * @returns The icon file name
+ */
+function getIconName(itemName: string): string {
+  switch (itemName.toLowerCase()) {
+    case 'feed':
+      return 'house';
+    case 'search':
+      return 'glass';
+    case 'contracts':
+      return 'contract';
+    case 'profile':
+      return 'profile';
+    default:
+      return itemName.toLowerCase();
+  }
 } 
