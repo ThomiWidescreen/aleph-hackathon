@@ -137,7 +137,7 @@ export default function FeedPage() {
               className={`px-4 py-1.5 rounded-full text-sm font-medium font-montserrat ${
                 activeFilter === filter 
                   ? 'bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white'
-                  : 'bg-black text-white'
+                  : 'bg-[#EAEAEA] text-black'
               }`}
               onClick={() => setActiveFilter(filter)}
             >
