@@ -3,6 +3,13 @@ import "./globals.css";
 import MiniKitProvider from "@/components/minikit-provider";
 import dynamic from "next/dynamic";
 import NextAuthProvider from "@/components/next-auth-provider";
+import dbConnect from "@/app/api/database/config";
+
+// Iniciar conexión con DB
+dbConnect()
+  .then(() => console.log('DB conectada en layout'))
+  .catch(err => console.error('Error al conectar DB en layout:', err));
+
 
 export const metadata: Metadata = {
   title: "Create Next App",

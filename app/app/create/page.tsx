@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import config from "../../@config.json";
 import BottomNav from "../../components/BottomNav";
+import { createVideo } from "../api/actions/file/createVideo";
 
 /**
  * CreateVideoPage component
@@ -14,11 +15,11 @@ export default function CreateVideoPage() {
     title: "",
     description: "",
     category: "",
-    price: "",
-    tags: "",
+    price: 0,
+    tags: [],
   });
   
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -39,8 +40,17 @@ export default function CreateVideoPage() {
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
-      
+      const file = e.target.files[0];
+      const reader = new FileReader();
+  
+      reader.onloadend = () => {
+        if (reader.result) {
+          setFile(reader.result.toString()); // Save Base64 string
+        }
+      };
+  
+      reader.readAsDataURL(file); // Convert file to Base64
+  
       if (errors.file) {
         setErrors({ ...errors, file: "" });
       }
@@ -69,10 +79,19 @@ export default function CreateVideoPage() {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    
+  
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      setFile(e.dataTransfer.files[0]);
-      
+      const file = e.dataTransfer.files[0];
+      const reader = new FileReader();
+  
+      reader.onloadend = () => {
+        if (reader.result) {
+          setFile(reader.result.toString()); // Save Base64 string
+        }
+      };
+  
+      reader.readAsDataURL(file); // Convert file to Base64
+  
       if (errors.file) {
         setErrors({ ...errors, file: "" });
       }
@@ -131,7 +150,15 @@ export default function CreateVideoPage() {
       console.log("Uploading video:", { ...video, file });
       
       // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await createVideo({
+        title: video.title,
+        description: video.description,
+        category: video.category,
+        price: parseFloat(video.price),
+        tags: video.tags.split(",").map((tag) => tag.trim()),
+        authorAddress: "0x0c892815f0B058E69987920A23FBb33c834289cf",
+        videoData: file || ""
+      })
       
       // Redirect to portfolio
       window.location.href = "/my-profile";
@@ -162,7 +189,7 @@ export default function CreateVideoPage() {
       </header>
       
       {/* Main Content */}
-      <main className="flex-grow p-4">
+      <main className="flex-grow p-4 text-black">
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
           <div>
@@ -322,11 +349,11 @@ export default function CreateVideoPage() {
                     onChange={handleFileSelect}
                   />
                 </div>
-                {file && (
+                {/* {file && (
                   <p className="text-sm text-gray-500 mt-2">
                     {file.name} ({(file.size / (1024 * 1024)).toFixed(2)} MB)
                   </p>
-                )}
+                )} */}
               </div>
             </div>
             {errors.file && (

@@ -1,10 +1,15 @@
 "use client";
+
 import {
   MiniKit,
   tokenToDecimals,
   Tokens,
   PayCommandInput,
 } from "@worldcoin/minikit-js";
+
+import { createUser } from "@actions/users/createUser";
+import UploadVideo from "../UploadVideo";
+import { createVideo } from "@actions/file/createVideo";
 
 const sendPayment = async () => {
   try {
@@ -71,8 +76,21 @@ const handlePay = async () => {
 
 export const PayBlock = () => {
   return (
-    <button className="bg-blue-500 p-4" onClick={handlePay}>
-      Pay
-    </button>
+    <>
+      <UploadVideo />
+      <button className="bg-blue-500 p-4" onClick={() => { createUser({ address: 'asd', name: "FFF", description: "aaa" }) }}>
+        Create user
+      </button>
+      <button className="bg-blue-500 p-4" onClick={async() => {
+        await createVideo({
+          title: "title",
+          description: "description",
+          authorAddress: "0x0c892815f0B058E69987920A23FBb33c834289cf",
+          videoData: 'http://res.cloudinary.com/dc2xcjktb/video/upload/v1742614885/fjkdcxtt0vbdgioa2r22.mp4'
+        })
+      }}>
+        Create Video
+      </button>
+    </>
   );
 };
