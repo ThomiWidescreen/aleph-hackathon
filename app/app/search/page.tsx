@@ -2,46 +2,35 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import config from "../../@config.json";
 import BottomNav from "../../components/BottomNav";
 
 /**
- * Search page component allowing users to search for video editing projects
- * Includes search bar, filters, and search results grid
+ * Search page component that displays a search bar and featured categories
+ * Matches the Figma design with large category cards and text overlays
  */
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 100 });
   
-  // Mock categories for filters
-  const categories = ["all", "3D", "motion", "editing", "color"];
-  
-  // Mock search results
-  const [searchResults, setSearchResults] = useState([
-    { id: 1, title: "3D Animation", price: 40, category: "3D", color: "bg-blue-100" },
-    { id: 2, title: "Motion Graphics", price: 20, category: "motion", color: "bg-green-100" },
-    { id: 3, title: "Video Editing", price: 10, category: "editing", color: "bg-purple-100" },
-    { id: 4, title: "Color Grading", price: 35, category: "color", color: "bg-yellow-100" },
-  ]);
-  
-  // Filter results based on search query, category, and price range
-  const filteredResults = searchResults.filter(result => {
-    // Text search
-    const matchesQuery = searchQuery === "" || 
-      result.title.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Category filter
-    const matchesCategory = selectedCategory === "all" || 
-      result.category === selectedCategory;
-    
-    // Price filter
-    const matchesPrice = result.price >= priceRange.min && 
-      result.price <= priceRange.max;
-    
-    return matchesQuery && matchesCategory && matchesPrice;
-  });
+  // Category items with titles and image URLs
+  const categories = [
+    {
+      id: 1,
+      title: "EXPLORING THE UNKNOWN",
+      imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format"
+    },
+    {
+      id: 2,
+      title: "FINDING BALANCE WITHIN",
+      imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?q=80&w=800&auto=format"
+    },
+    {
+      id: 3,
+      title: "WEAVING A NEW NARRATIVE",
+      imageUrl: "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?q=80&w=800&auto=format"
+    }
+  ];
   
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,146 +39,80 @@ export default function SearchPage() {
     // In a real app, we would debounce this and make an API call
     console.log("Searching for:", value);
   };
-  
-  // Toggle filters visibility
-  const toggleFilters = () => {
-    setShowFilters(!showFilters);
-  };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white shadow-sm p-4">
-        <h1 className="text-xl font-bold text-center mb-4">
-          {config.screens.search.title}
-        </h1>
+    <div className="flex flex-col min-h-screen bg-[#FEFDF9]">
+      {/* Header with logo and chat icon */}
+      <header className="sticky top-0 z-10 bg-black p-4 shadow-sm flex justify-between items-center">
+        <h1 className="text-xl font-bold font-montserrat text-white">LOGO</h1>
         
-        {/* Search Bar */}
+        <Link href="/chat">
+          <Image 
+            src="/icons/chat.svg"
+            width={30}
+            height={30}
+            alt="Chat"
+            className="w-[30px] h-[30px]"
+          />
+        </Link>
+      </header>
+      
+      {/* Search Bar */}
+      <div className="px-4 py-3">
         <div className="relative">
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <svg 
+              width="21" 
+              height="20" 
+              viewBox="0 0 21 20" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5"
+            >
+              <path 
+                d="M19.25 19L14.907 14.657M14.907 14.657C15.6499 13.9141 16.2392 13.0321 16.6412 12.0615C17.0433 11.0909 17.2502 10.0506 17.2502 8.99996C17.2502 7.94936 17.0433 6.90905 16.6412 5.93842C16.2392 4.96779 15.6499 4.08585 14.907 3.34296C14.1641 2.60007 13.2822 2.01078 12.3115 1.60874C11.3409 1.20669 10.3006 0.999756 9.25 0.999756C8.1994 0.999756 7.15908 1.20669 6.18845 1.60874C5.21782 2.01078 4.33589 2.60007 3.593 3.34296C2.09267 4.84329 1.24979 6.87818 1.24979 8.99996C1.24979 11.1217 2.09267 13.1566 3.593 14.657C5.09333 16.1573 7.12821 17.0002 9.25 17.0002C11.3718 17.0002 13.4067 16.1573 14.907 14.657Z" 
+                stroke="#ADADAD" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          
           <input
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}
             placeholder={config.screens.search.placeholders.search}
-            className="w-full p-3 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            className="w-full p-3 pl-10 bg-white border-[2.8px] border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#3E54F5] text-black"
           />
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
         </div>
-        
-        {/* Filters Button */}
-        <button
-          onClick={toggleFilters}
-          className="mt-3 w-full py-2 px-4 bg-gray-100 text-gray-800 rounded-md flex justify-center items-center"
-        >
-          {config.screens.search.placeholders.filters}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className={`h-4 w-4 ml-2 transition-transform ${
-              showFilters ? "rotate-180" : ""
-            }`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </button>
-        
-        {/* Filters Panel */}
-        {showFilters && (
-          <div className="mt-3 p-4 bg-white border border-gray-200 rounded-md">
-            {/* Category Filters */}
-            <div className="mb-4">
-              <h3 className="mb-2 text-sm font-medium text-gray-700">Category</h3>
-              <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`px-3 py-1 text-sm rounded-full ${
-                      selectedCategory === category
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ))}
+      </div>
+
+      {/* Main Content - Featured Categories */}
+      <main className="flex-grow p-4 pb-24">
+        <div className="flex flex-col gap-3">
+          {categories.map((category) => (
+            <div key={category.id} className="relative h-[200px] w-full rounded-2xl overflow-hidden">
+              <Image 
+                src={category.imageUrl}
+                alt={category.title}
+                fill
+                style={{ objectFit: 'cover' }}
+              />
+              
+              {/* Dark overlay for better text visibility */}
+              <div className="absolute inset-0 bg-black/30"></div>
+              
+              {/* Category title */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <h2 className="text-2xl font-bold font-montserrat text-white text-center px-4">
+                  {category.title}
+                </h2>
               </div>
             </div>
-            
-            {/* Price Range Filter */}
-            <div>
-              <h3 className="mb-2 text-sm font-medium text-gray-700">
-                Price Range: ${priceRange.min} - ${priceRange.max}
-              </h3>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={priceRange.max}
-                onChange={(e) => setPriceRange({ ...priceRange, max: parseInt(e.target.value) })}
-                className="w-full"
-              />
-            </div>
-          </div>
-        )}
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-grow p-4">
-        {/* Search Results Count */}
-        <p className="mb-3 text-sm text-gray-600">
-          {filteredResults.length} {filteredResults.length === 1 ? "result" : "results"} found
-        </p>
-        
-        {/* Search Results Grid */}
-        {filteredResults.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4">
-            {filteredResults.map((result) => (
-              <Link href={`/detail?id=${result.id}`} key={result.id}>
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                  {/* Video Thumbnail */}
-                  <div className={`relative aspect-video ${result.color} flex items-center justify-center`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-10 h-10 text-gray-700">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14v-4z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  
-                  {/* Project Info */}
-                  <div className="p-3">
-                    <h3 className="font-medium text-sm truncate">{result.title}</h3>
-                    <p className="text-blue-600 font-bold">${result.price}</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-8">
-            <p className="text-gray-500 mb-2">No results found</p>
-            <p className="text-gray-400 text-sm">Try adjusting your search or filters</p>
-          </div>
-        )}
+          ))}
+        </div>
       </main>
 
       {/* Bottom Navigation */}
