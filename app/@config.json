@@ -1,0 +1,231 @@
+{
+  "app": {
+    "name": "Video Editors Web3 Hub",
+    "description": "A decentralized marketplace for video editors"
+  },
+  "screens": {
+    "welcome": {
+      "title": "Welcome",
+      "placeholders": {
+        "name": "Name",
+        "description": "Description",
+        "button": "Create Profile"
+      }
+    },
+    "feed": {
+      "title": "Artmarket"
+    },
+    "search": {
+      "title": "Search",
+      "placeholders": {
+        "search": "Search...",
+        "filters": "filtros"
+      }
+    },
+    "profileVideoMaker": {
+      "title": "Editor Profile",
+      "actions": {
+        "chat": "chatear",
+        "hire": "contratar"
+      },
+      "labels": {
+        "portfolio": "Portfolio",
+        "availableForHire": "Available for hire",
+        "completed": "completed",
+        "total": "total",
+        "notFound": "Editor profile not found",
+        "returnToFeed": "Return to feed"
+      }
+    },
+    "myProfile": {
+      "title": "My Profile",
+      "labels": {
+        "wallet": "Wallet",
+        "availableForHire": "Available for hire",
+        "completed": "Completed",
+        "active": "Active",
+        "earnings": "Earnings",
+        "portfolio": "My Portfolio",
+        "addWork": "+ Add Work",
+        "unableToLoad": "Unable to load profile",
+        "retry": "Retry"
+      },
+      "actions": {
+        "editProfile": "Edit Profile"
+      }
+    },
+    "chat": {
+      "title": "Chats",
+      "placeholders": {
+        "message": "Escribe un mensaje...",
+        "noChats": "No tienes chats activos",
+        "startChat": "Comienza a chatear"
+      },
+      "actions": {
+        "send": "Enviar",
+        "retry": "Reintentar"
+      },
+      "errors": {
+        "loadFailed": "Error loading chat data"
+      }
+    },
+    "createContract": {
+      "title": "Crear Contrato",
+      "steps": {
+        "details": "Detalles del Proyecto",
+        "conditions": "Condiciones",
+        "summary": "Resumen y Confirmación"
+      },
+      "labels": {
+        "title": "Título del Proyecto",
+        "description": "Descripción del Proyecto",
+        "deliveryDate": "Fecha de Entrega",
+        "budget": "Presupuesto (USD)",
+        "revisions": "Revisiones Incluidas",
+        "termsConditions": "Acepto los términos y condiciones, incluyendo el pago a través de la plataforma y las políticas de reembolso"
+      },
+      "placeholders": {
+        "title": "Ej. Video promocional para mi empresa",
+        "description": "Describe detalladamente lo que necesitas...",
+        "budget": "0.00"
+      },
+      "actions": {
+        "next": "Siguiente",
+        "previous": "Anterior",
+        "cancel": "Cancelar",
+        "create": "Crear Contrato"
+      },
+      "validation": {
+        "titleRequired": "El título del proyecto es obligatorio",
+        "descriptionRequired": "La descripción del proyecto es obligatoria",
+        "deliveryDateRequired": "La fecha de entrega es obligatoria",
+        "budgetRequired": "El presupuesto es obligatorio",
+        "budgetPositive": "El presupuesto debe ser mayor a 0",
+        "termsRequired": "Debes aceptar los términos y condiciones"
+      },
+      "errors": {
+        "createFailed": "Error al crear el contrato. Inténtalo de nuevo."
+      }
+    },
+    "acceptContract": {
+      "title": "Revisar Contrato",
+      "status": {
+        "pending": "Pendiente",
+        "accepted": "Aceptado",
+        "rejected": "Rechazado"
+      },
+      "labels": {
+        "from": "Cliente",
+        "description": "Descripción del Proyecto",
+        "budget": "Presupuesto",
+        "delivery": "Fecha de Entrega",
+        "revisions": "Revisiones Incluidas",
+        "notFound": "Contrato no encontrado",
+        "returnToFeed": "Volver al Feed"
+      },
+      "actions": {
+        "accept": "Aceptar",
+        "reject": "Rechazar",
+        "cancel": "Cancelar",
+        "confirm": "Confirmar",
+        "confirmReject": "Rechazar",
+        "processing": "Procesando..."
+      },
+      "confirmations": {
+        "acceptTitle": "¿Aceptar este contrato?",
+        "acceptMessage": "Al aceptar este contrato, te comprometes a entregar el trabajo según las condiciones acordadas.",
+        "rejectTitle": "¿Rechazar este contrato?",
+        "rejectMessage": "Al rechazar este contrato, el cliente será notificado y podrá buscar otro editor."
+      },
+      "errors": {
+        "processingFailed": "Error al procesar el contrato. Inténtalo de nuevo."
+      }
+    },
+    "createVideo": {
+      "title": "Subir Video",
+      "labels": {
+        "title": "Título del Video",
+        "description": "Descripción",
+        "category": "Categoría",
+        "price": "Precio (USD)",
+        "tags": "Etiquetas",
+        "selectFile": "Seleccionar Archivo",
+        "thumbnail": "Miniatura",
+        "dragDrop": "Arrastra y suelta tu archivo aquí o",
+        "browse": "Explorar archivos"
+      },
+      "placeholders": {
+        "title": "Ej. Motion Graphics Intro",
+        "description": "Describe tu video...",
+        "tags": "Ej. Edición, 3D, Animación",
+        "price": "0.00"
+      },
+      "actions": {
+        "upload": "Subir Video",
+        "cancel": "Cancelar",
+        "processing": "Procesando..."
+      },
+      "validation": {
+        "titleRequired": "El título es obligatorio",
+        "descriptionRequired": "La descripción es obligatoria",
+        "categoryRequired": "La categoría es obligatoria",
+        "priceRequired": "El precio es obligatorio",
+        "fileRequired": "Debes seleccionar un archivo"
+      },
+      "errors": {
+        "uploadFailed": "Error al subir el video. Inténtalo de nuevo."
+      }
+    },
+    "myContracts": {
+      "title": "Mis Contratos",
+      "tabs": {
+        "pending": "Pendientes",
+        "active": "Activos",
+        "completed": "Completados"
+      },
+      "labels": {
+        "from": "Cliente",
+        "date": "Fecha",
+        "status": "Estado",
+        "amount": "Monto",
+        "noContracts": "No tienes contratos en esta categoría",
+        "viewDetails": "Ver detalles"
+      },
+      "status": {
+        "pending": "Pendiente",
+        "accepted": "Aceptado",
+        "rejected": "Rechazado",
+        "completed": "Completado",
+        "inProgress": "En progreso"
+      },
+      "actions": {
+        "filter": "Filtrar",
+        "create": "Crear Contrato"
+      }
+    },
+    "bottomNav": {
+      "items": [
+        {
+          "name": "feed",
+          "route": "/feed"
+        },
+        {
+          "name": "search",
+          "route": "/search"
+        },
+        {
+          "name": "create",
+          "route": "/create"
+        },
+        {
+          "name": "contracts",
+          "route": "/contracts"
+        },
+        {
+          "name": "profile",
+          "route": "/my-profile"
+        }
+      ]
+    }
+  }
+} 
