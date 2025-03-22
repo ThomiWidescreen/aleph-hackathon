@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import config from '../../@config.json';
@@ -12,6 +12,10 @@ import config from '../../@config.json';
  */
 export default function BottomNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
+  // Check if we're on the detail page by looking at both pathname and query params
+  const isDetailPage = pathname.endsWith('/detail') || pathname.includes('/detail');
   
   // Define types for navigation items
   type NavItem = {
@@ -35,6 +39,11 @@ export default function BottomNav() {
    * @returns Whether the navigation item is active
    */
   const isActive = (currentPath: string, itemPath: string): boolean => {
+    // If we're on the detail page, no navigation item should be active
+    if (isDetailPage) {
+      return false;
+    }
+    
     // Special case for feed (home)
     if (itemPath === '/feed' && currentPath === '/') {
       return true;
@@ -51,18 +60,18 @@ export default function BottomNav() {
   }));
 
   return (
-    <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-[#FFFFFF] border-t border-gray-100 dark:bg-[#FFFFFF] dark:border-gray-100 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+    <div className="fixed bottom-0 left-0 z-50 w-full h-[42px] bg-[#FFFFFF] border-t border-gray-100 dark:bg-[#FFFFFF] dark:border-gray-100 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
       {/* Botón Create posicionado para que quede a la mitad entre el contenido y el footer */}
       <div className="absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 top-0 z-10">
         <Link
           href="/create"
           className="inline-flex flex-col items-center justify-center"
         >
-          <div className="w-[50px] h-[50px] rounded-full flex items-center justify-center bg-gradient-to-br from-[#631497] to-[#3E54F5] shadow-lg">
+          <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center bg-gradient-to-br from-[#631497] to-[#3E54F5] shadow-lg">
             <Image 
               src="/icons/plus.svg"
-              width={30}
-              height={30}
+              width={24}
+              height={24}
               alt="Create"
             />
           </div>
