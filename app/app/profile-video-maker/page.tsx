@@ -30,13 +30,13 @@ export default function ProfileVideoMakerPage() {
     const fetchProfileData = async () => {
       try {
         setIsLoading(true);
-  
+
         // Ejecutar ambas promesas en paralelo
         const [userResponse, videos] = await Promise.all([
           getUser({ address: userAddress }),
           getVideosByAuthor(userAddress),
         ]);
-  
+
         if (!userResponse.user) {
           console.log("No user found");
           setProfileData(null);
@@ -51,7 +51,7 @@ export default function ProfileVideoMakerPage() {
         setIsLoading(false);
       }
     };
-  
+
     fetchProfileData();
   }, [userAddress]);
 
@@ -144,11 +144,17 @@ export default function ProfileVideoMakerPage() {
               {/* {profileData.} */}
               {portfolio?.map((item) => (
                 <div key={item.id} className="relative overflow-hidden">
-                  <img
-                    src={getThumbnailUrl(item.urlVideo)}
-                    alt={item.title}
-                    className="w-full h-[150px] rounded-xl object-cover"
-                  />
+                  <Link
+                    href={`/detail?id=${item._id}`}
+                    key={item.id}
+                    className="block transition-transform hover:scale-[1.01]"
+                    >
+                    <img
+                      src={getThumbnailUrl(item.urlVideo)}
+                      alt={item.title}
+                      className="w-full h-[150px] rounded-xl object-cover"
+                    />
+                  </Link>
                 </div>
               ))}
             </div>
