@@ -19,9 +19,21 @@ import { getThumbnailUrl } from "../feed/page";
 export default function ProfileVideoMakerPage() {
   const searchParams = useSearchParams();
   const editorId = searchParams.get("id");
+  const editorAddress = searchParams.get("address") || ""
   const router = useRouter();
 
-  const userAddress = getUserAddress();
+  const [userAddress, setUserAddress] = useState("")
+
+  useEffect(() => {
+    getUserAddress().then(e => {
+      if(!e){
+        return
+      }
+      setUserAddress(e)
+    }) 
+  }, [
+
+  ])
 
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<IUser | null>(null);
@@ -33,8 +45,8 @@ export default function ProfileVideoMakerPage() {
 
         // Ejecutar ambas promesas en paralelo
         const [userResponse, videos] = await Promise.all([
-          getUser({ address: userAddress }),
-          getVideosByAuthor(userAddress),
+          getUser({ address: editorAddress }),
+          getVideosByAuthor(editorAddress),
         ]);
 
         if (!userResponse.user) {
@@ -53,7 +65,7 @@ export default function ProfileVideoMakerPage() {
     };
 
     fetchProfileData();
-  }, [userAddress]);
+  }, []);
 
   const handleChatClick = () => {
     if (profileData) {

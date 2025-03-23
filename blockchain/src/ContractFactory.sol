@@ -3,58 +3,74 @@ pragma solidity ^0.8.24;
 
 import "./WorkContract.sol";
 import "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import "@uniswap/permit2/interfaces/ISignatureTransfer.sol";
 
 contract ContractFactory {
     address[] public allEscrows;
     mapping(address => address[]) public escrowsByPayer;
     mapping(address => address[]) public escrowsByWorker;
 
+    address public permit2;
+
     event EscrowCreated(
         address indexed contractAddress,
         address indexed payer,
         address indexed worker
     );
-    function createEscrow(
-        address worker,
-        uint256 deadline,
-        string calldata overview,
-        string calldata name,
-        uint256 insuranceAmount,
-        uint256 totalAmount,
-        address token,
-        address vault
+
+    constructor(address _permit2) {
+        permit2 = _permit2;
+    }
+
+    struct EscrowParams {
+        address worker;
+        uint256 deadline;
+        string overview;
+        string name;
+        uint256 insuranceAmount;
+        uint256 totalAmount;
+        address token;
+        address vault;
+    }
+
+    function createEscrowWithPermit2(
+        EscrowParams calldata params,
+        ISignatureTransfer.PermitTransferFrom calldata permit,
+        ISignatureTransfer.SignatureTransferDetails calldata transferDetails,
+        bytes calldata signature
     ) external returns (address) {
-        require(IERC4626(vault).asset() == token, "Vault/token mismatch");
+        require(IERC4626(params.vault).asset() == params.token, "Vault/token mismatch");
 
-        // 🛑 Transfer tokens to the factory
-        require(
-            IERC20(token).transferFrom(msg.sender, address(this), totalAmount),
-            "Token transfer failed"
-        );
+        // 🪄 Transfer totalAmount from msg.sender using Permit2
+        ISignatureTransfer(permit2).permitTransferFrom(permit, transferDetails, msg.sender, signature);
 
-        // 🧱 Deploy WorkContract
-        WorkContract escrow = new WorkContract(
-            msg.sender, // 👈 este es el payer real
-            worker,
-            deadline,
-            overview,
-            name,
-            insuranceAmount,
-            totalAmount,
-            token,
-            vault
-        );
+        // 🧱 Prepare config struct
+        WorkContract.Config memory config = WorkContract.Config({
+            payer: msg.sender,
+            worker: params.worker,
+            deadline: params.deadline,
+            overview: params.overview,
+            name: params.name,
+            insuranceAmount: params.insuranceAmount,
+            totalAmount: params.totalAmount,
+            token: params.token,
+            vault: params.vault,
+            permit2: permit2
+        });
+
+        // 🧱 Deploy WorkContract with config
+        WorkContract escrow = new WorkContract(config);
 
         address escrowAddr = address(escrow);
 
         // 📤 Send the tokens to the escrow contract
-        IERC20(token).transfer(escrowAddr, totalAmount);
+        IERC20(params.token).transfer(escrowAddr, params.totalAmount);
 
         allEscrows.push(escrowAddr);
         escrowsByPayer[msg.sender].push(escrowAddr);
-        escrowsByWorker[worker].push(escrowAddr);
+        escrowsByWorker[params.worker].push(escrowAddr);
 
-        emit EscrowCreated(escrowAddr, msg.sender, worker);
+        emit EscrowCreated(escrowAddr, msg.sender, params.worker);
         return escrowAddr;
     }
 

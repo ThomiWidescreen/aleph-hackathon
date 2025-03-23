@@ -18,6 +18,8 @@ export const getUsersByName = async ({ name }: Props) => {
             $and: [{ state: true }]
         });
 
+        console.log({users})
+
         return {
             message: 'Get Users Ok',
             users: users || []

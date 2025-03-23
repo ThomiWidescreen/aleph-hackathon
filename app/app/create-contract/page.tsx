@@ -4,6 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import BottomNav from "../../components/BottomNav";
+import { getUserAddress } from "../api/helpers/getUserAddress";
+import { useUserBalances } from "@/blockchain/hooks/useBalances";
+import { useCreateContract } from "@/blockchain/hooks/useCreateContract";
+import { MiniKit } from "@worldcoin/minikit-js";
 
 /**
  * CreateContractPage component
@@ -12,6 +16,22 @@ import BottomNav from "../../components/BottomNav";
 export default function CreateContractPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+
+  const [userAddress, setUserAddress] = useState<`0x${string}` | null>(null)
+
+  const balance = useUserBalances(userAddress)
+  
+    useEffect(() => {
+      getUserAddress().then(e => {
+        if(!e){
+          return
+        }
+        setUserAddress(e)
+      }) 
+    }, [
+  
+    ])
   
   // Form data state
   const [formData, setFormData] = useState({
@@ -23,9 +43,18 @@ export default function CreateContractPage() {
     recipient: ""
   });
 
+  const {createEscrow} = useCreateContract()
+
+  
+
+
   // Currency state for payment fields
   const [currency, setCurrency] = useState("WLD");
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
+
+  useEffect(() => {
+    MiniKit.enableDebugLogs?.();
+  }, []);
 
   // Error state for validation
   const [errors, setErrors] = useState<{
@@ -112,8 +141,17 @@ export default function CreateContractPage() {
         </div>
       </div>
 
+
       {/* Form Container - Extended white background with proper spacing */}
       <div className="flex-grow bg-white rounded-t-2xl">
+      <div className="text-black"><div className="text-black text-sm">
+  Wallet: {userAddress || "Loading..."} <br />
+  WLD Balance:{" "}
+  {balance !== undefined
+    ? `${balance} WLD`
+    : "Loading..."}
+</div></div> 
+
         <div className="px-6 pt-5 pb-24 flex flex-col gap-5">
           {/* Contract Name */}
           <div className="flex flex-col gap-2">
@@ -267,7 +305,23 @@ export default function CreateContractPage() {
           {/* Action Buttons */}
           <div className="flex justify-center mt-6">
             <button 
-              onClick={handleSubmit} 
+              onClick={async () => {
+                const result = await createEscrow({
+                  vault: "0x0a392956c8ab256dd98509e7d02f35b1106272fd",
+                  insuranceAmount:"1000000000000000000",
+                  name: "TEstttt",
+                  overview: "TEstttt",
+                  token: "0x2cfc85d8e48f8eab294be644d9e25c3030863003",
+                  deadline: Math.floor(Date.now() / 1000) + 60 * 60,
+                  totalAmount: "1000000000000000000",
+                  worker: "0x37477d7de63acc2bab69e772f54aa71ce489a2a4"
+
+                }).catch((err) => {
+                  console.error("🚨 MiniKit tx rejected or failed:", err);
+                });
+
+                console.log({result})
+              }} 
               className="w-full bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white font-medium rounded-full py-3 text-sm"
             >
               Send contract

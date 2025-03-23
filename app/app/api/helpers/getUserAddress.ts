@@ -1,14 +1,29 @@
-"use client"; // Required for Next.js
+"use client"
 
-import { MiniKit } from "@worldcoin/minikit-js";
+import { MiniKit } from "@worldcoin/minikit-js"
 
-export const getUserAddress = () => {
+export const getUserAddress = async (): Promise<`0x${string}` | null> => {
+  // Ya está conectado
+  if (MiniKit.user?.walletAddress) {
+    return MiniKit.user.walletAddress as `0x${string}` | null
+  }
+  console.log({user: MiniKit.user})
 
-    const address = MiniKit.user?.walletAddress
-    if (!address) {
-        return "0x0c892815f0B058E69987920A23FBb33c834289cf"
-    }
+  // Obtener nonce del backend
+  const res = await fetch("/api/nonce")
+  const { nonce } = await res.json()
 
-    return address
+  const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
+    nonce,
+    requestId: '0',
+    expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    notBefore: new Date(Date.now() - 60 * 1000),
+    statement: "Sign to connect your wallet to the MiniApp"
+  })
+
+  if (finalPayload?.status === 'error') {
+    return null
+  }
+
+  return MiniKit.user?.walletAddress as `0x${string}` 
 }
-

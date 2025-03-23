@@ -187,7 +187,8 @@ export default function SearchPage() {
             <h3 className="text-lg font-medium text-gray-700">Users</h3>
             {users?.length > 0 ? (
               users.map(user => (
-                <div key={user.address} className="flex items-center p-3 bg-white rounded-xl shadow-sm">
+                // @ts-ignore
+                <Link href={`profile-video-maker?address=${user.address}`} key={user.address} className="flex items-center p-3 bg-white rounded-xl shadow-sm">
                   <Image
                     src={(user.photo) ? user.photo : "https://randomuser.me/api/portraits/men/75.jpg"}
                     width={50}
@@ -199,7 +200,7 @@ export default function SearchPage() {
                     <h4 className="font-semibold text-black">{user.name}</h4>
                     <p className="text-gray-500 text-sm">{user.description}</p>
                   </div>
-                </div>
+                </Link>
               ))
             ) : (
               <div className="text-center py-8 text-gray-500">

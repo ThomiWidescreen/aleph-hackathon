@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 gap-y-3">
       <PayBlock />
-      <Link href="/profile">Profile</Link>
+      <Link href="/profile-video-maker?id=67de37e6c29a6f8135c04c45">Profile</Link>
     </main>
   );
 }

@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import "@uniswap/permit2/interfaces/ISignatureTransfer.sol";
 
 contract WorkContract {
     enum Status {
@@ -14,11 +15,25 @@ contract WorkContract {
         Dispute
     }
 
+    struct Config {
+        address payer;
+        address worker;
+        uint256 deadline;
+        string overview;
+        string name;
+        uint256 insuranceAmount;
+        uint256 totalAmount;
+        address token;
+        address vault;
+        address permit2;
+    }
+
     address public payer;
     address public worker;
 
     IERC20 public paymentToken;
     IERC4626 public vault;
+    ISignatureTransfer public permit2;
 
     uint256 public totalAmount;
     uint256 public insuranceAmount;
@@ -29,43 +44,34 @@ contract WorkContract {
 
     Status public status;
 
-    constructor(
-        address _payer,
-        address _worker,
-        uint256 _deadline,
-        string memory _overview,
-        string memory _name,
-        uint256 _insuranceAmount,
-        uint256 _totalAmount,
-        address _token,
-        address _vault
-    ) {
-        payer = _payer;
-        worker = _worker;
-        deadline = _deadline;
-        overview = _overview;
-        name = _name;
+    constructor(Config memory config) {
+        payer = config.payer;
+        worker = config.worker;
+        deadline = config.deadline;
+        overview = config.overview;
+        name = config.name;
 
-        insuranceAmount = _insuranceAmount;
-        totalAmount = _totalAmount;
-        paymentToken = IERC20(_token);
-        vault = IERC4626(_vault);
+        insuranceAmount = config.insuranceAmount;
+        totalAmount = config.totalAmount;
+        paymentToken = IERC20(config.token);
+        vault = IERC4626(config.vault);
+        permit2 = ISignatureTransfer(config.permit2);
 
         status = Status.Pending;
-        // Los fondos del payer ya están en el contrato
     }
 
-    function acceptContract() external {
+    function acceptWithPermit2(
+        ISignatureTransfer.PermitTransferFrom calldata permit,
+        ISignatureTransfer.SignatureTransferDetails calldata transferDetails,
+        bytes calldata signature
+    ) external {
         require(msg.sender == worker, "Only worker can accept");
         require(status == Status.Pending, "Invalid status");
 
-        // Worker transfiere su seguro
-        require(
-            paymentToken.transferFrom(worker, address(this), insuranceAmount),
-            "Insurance transfer failed"
-        );
+        // Transfer insuranceAmount from worker using Permit2
+        permit2.permitTransferFrom(permit, transferDetails, msg.sender, signature);
 
-        // Aprobar al vault y depositar todo
+        // Approve vault and deposit all funds
         uint256 fullAmount = totalAmount + insuranceAmount;
         paymentToken.approve(address(vault), fullAmount);
         vault.deposit(fullAmount, address(this));
