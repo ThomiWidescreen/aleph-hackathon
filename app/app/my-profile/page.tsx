@@ -10,6 +10,7 @@ import { getVideosByAuthor } from "../api/actions/file/getVideosByAuthor";
 import { getUserAddress } from "../api/helpers/getUserAddress";
 import VideoThumbnail from "./VideoThumbnail";
 import { getThumbnailUrl } from "../feed/page";
+import User from "../api/database/models/user";
 
 /**
  * Interfaces para los datos de usuario y videos
@@ -71,7 +72,7 @@ const StatusIndicator = ({ status }: { status: string }) => {
   let statusColor = "";
   let textColor = "";
   let statusText = "";
-  
+
   switch (status) {
     case "Pending":
       statusColor = "bg-yellow-500";
@@ -108,7 +109,7 @@ const StatusIndicator = ({ status }: { status: string }) => {
       textColor = "text-gray-500";
       statusText = "Unknown";
   }
-  
+
   return (
     <div className="flex items-center gap-1.5">
       <div className={`w-3 h-3 rounded-full ${statusColor}`}></div>
@@ -152,16 +153,16 @@ const ErrorState = ({ onRetry }: { onRetry: () => void }) => (
  */
 const ProfileHeader = ({ userProfile }: { userProfile: IUser | null }) => {
   if (!userProfile) return null;
-  
+
   return (
     <div className="p-6 bg-[#090619] -mt-4">
       <div className="flex items-center mb-4">
         {/* Imagen de perfil */}
         <div className="w-20 h-20 rounded-full overflow-hidden">
           {userProfile.photo ? (
-            <img 
-              src={userProfile.photo} 
-              alt={userProfile.name} 
+            <img
+              src={userProfile.photo}
+              alt={userProfile.name}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -170,13 +171,13 @@ const ProfileHeader = ({ userProfile }: { userProfile: IUser | null }) => {
             </div>
           )}
         </div>
-        
+
         <div className="ml-4">
           {/* Nombre de usuario */}
           <h1 className="text-xl font-bold text-white mb-3 font-montserrat">{userProfile.name}</h1>
-          
+
           {/* Botón de edición */}
-          <Link 
+          <Link
             href="/edit-profile"
             className="px-4 py-1 bg-white text-[#090619] rounded-full text-sm font-medium inline-block font-montserrat w-[85%] text-center flex items-center justify-center"
           >
@@ -184,7 +185,7 @@ const ProfileHeader = ({ userProfile }: { userProfile: IUser | null }) => {
           </Link>
         </div>
       </div>
-      
+
       {/* Descripción del perfil */}
       <p className="text-[#ADADAD] text-sm font-normal font-montserrat mt-4">{userProfile.description}</p>
     </div>
@@ -197,36 +198,34 @@ const ProfileHeader = ({ userProfile }: { userProfile: IUser | null }) => {
  * @param onViewChange Función para cambiar entre vistas
  * @returns Elemento JSX con las pestañas de navegación
  */
-const TabNavigation = ({ 
-  activeView, 
-  onViewChange 
-}: { 
-  activeView: "creations" | "contracts", 
-  onViewChange: (view: "creations" | "contracts") => void 
+const TabNavigation = ({
+  activeView,
+  onViewChange
+}: {
+  activeView: "creations" | "contracts",
+  onViewChange: (view: "creations" | "contracts") => void
 }) => {
   return (
     <div className="flex justify-between items-center mb-6 border-b border-gray-200">
       {/* Pestaña de Contratos */}
-      <button 
-        className={`w-1/2 text-center py-3 px-3 text-base font-semibold font-montserrat ${
-          activeView === "contracts" 
-            ? "border-b-2 border-gradient-blue-purple" 
+      <button
+        className={`w-1/2 text-center py-3 px-3 text-base font-semibold font-montserrat ${activeView === "contracts"
+            ? "border-b-2 border-gradient-blue-purple"
             : "text-[#ADADAD] border-b-2 border-transparent"
-        }`}
+          }`}
         onClick={() => onViewChange("contracts")}
       >
         <span className={activeView === "contracts" ? "bg-gradient-to-r from-[#3E54F5] to-[#631497] bg-clip-text text-transparent" : ""}>
           Contracts
         </span>
       </button>
-      
+
       {/* Pestaña de Creaciones */}
-      <button 
-        className={`w-1/2 text-center py-3 px-3 text-base font-semibold font-montserrat ${
-          activeView === "creations" 
-            ? "border-b-2 border-gradient-blue-purple" 
+      <button
+        className={`w-1/2 text-center py-3 px-3 text-base font-semibold font-montserrat ${activeView === "creations"
+            ? "border-b-2 border-gradient-blue-purple"
             : "text-[#ADADAD] border-b-2 border-transparent"
-        }`}
+          }`}
         onClick={() => onViewChange("creations")}
       >
         <span className={activeView === "creations" ? "bg-gradient-to-r from-[#3E54F5] to-[#631497] bg-clip-text text-transparent" : ""}>
@@ -256,9 +255,9 @@ const CreationsList = ({ creations }: { creations: CreationType[] }) => {
   return (
     <div className="space-y-4">
       {creations.map((creation) => (
-        <Link 
-          href={`/detail?id=${creation.id}`} 
-          key={creation.id} 
+        <Link
+          href={`/detail?id=${creation.id}`}
+          key={creation.id}
           className="block bg-[#090619] rounded-xl overflow-hidden p-4 mb-4 border border-gray-800 transition-transform hover:scale-[1.01]"
         >
           <VideoThumbnail urlVideo={creation.thumbnail} />
@@ -301,8 +300,8 @@ const ContractsList = ({ contracts }: { contracts: ContractType[] }) => {
             <p className="text-[#090619] font-montserrat text-xs">
               Deadline: <span className="text-[#3E54F5]">{contract.deadline}</span>
             </p>
-            <Link 
-              href={`${config.routes.contractDetails}/${contract.id}`} 
+            <Link
+              href={`${config.routes.contractDetails}/${contract.id}`}
               className="bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white font-montserrat text-xs px-3 py-1 rounded-full"
             >
               {contract.status === 'Pending' ? 'Review' : 'View'}
@@ -323,13 +322,30 @@ export default function MyProfilePage() {
   // Acceso a parámetros de búsqueda y router para navegación
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
+
+  const [userAddress, setUserAddress] = useState<`0x${string}` | null>(null)
+
+  useEffect(() => {
+    getUserAddress().then(e => {
+      const findUser = User.findOne({
+        address: e
+      })
+      if (!findUser) {
+        window.location.href = "/welcome";
+      }
+      setUserAddress(e)
+    })
+  }, [
+
+  ])
+
   // Estado para los datos del perfil de usuario
   const [userProfile, setUserProfile] = useState<IUser | null>(null);
-  
+
   // Estado para las creaciones (videos) del usuario
   const [creations, setCreations] = useState<CreationType[]>([]);
-  
+
   // Estado para los contratos (aún mockupeados)
   const [contracts, setContracts] = useState<ContractType[]>([
     {
@@ -340,35 +356,35 @@ export default function MyProfilePage() {
       deadline: "10/10/2023",
       price: 4059
     },
-    { 
-      id: "contract-in_progress-001", 
-      title: "The best contract ever", 
+    {
+      id: "contract-in_progress-001",
+      title: "The best contract ever",
       status: "Accepted",
       description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
       price: 4059,
       deadline: "15/11/2023"
     },
-    { 
-      id: "contract-completed-001", 
-      title: "The best contract ever", 
+    {
+      id: "contract-completed-001",
+      title: "The best contract ever",
       status: "Completed",
       description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
       price: 4059,
       deadline: "05/10/2023"
     },
-    { 
-      id: "contract-expires_soon-001", 
-      title: "The best contract ever", 
+    {
+      id: "contract-expires_soon-001",
+      title: "The best contract ever",
       status: "Dispute",
       description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
       price: 4059,
       deadline: "25/10/2023"
     }
   ]);
-  
+
   // Estado para indicar carga de datos
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Estado para la vista activa (creaciones o contratos)
   // Por defecto mostrar "contracts" pero verificar parámetros de URL al montar
   const [activeView, setActiveView] = useState<"creations" | "contracts">("contracts");
@@ -393,28 +409,28 @@ export default function MyProfilePage() {
       // Registrar inicio de carga de datos
       console.log("Loading user profile data...");
       setIsLoading(true);
-      
+
       try {
         // Obtener dirección del usuario
         const userAddress = getUserAddress();
         console.log("User address:", userAddress);
-        
+
         // Obtener datos del usuario
         const userResponse = await getUser({ address: userAddress });
         if (userResponse.error) {
           throw new Error("Error loading user data");
         }
-        
+
         console.log("User data:", userResponse.user);
         setUserProfile(userResponse.user);
-        
+
         // Obtener videos del usuario
         const videosResponse = await getVideosByAuthor(userAddress);
         console.log("Videos response:", videosResponse);
         // if (videosResponse.error) {
         //   throw new Error("Error loading user videos");
         // }
-        
+
         // Convertir IVideo[] a CreationType[] para mantener compatibilidad
         // Asegurarse de que videosResponse.videos es un array
         const videos = Array.isArray(videosResponse) ? videosResponse : [];
@@ -424,10 +440,10 @@ export default function MyProfilePage() {
           description: video.description,
           thumbnail: video.urlVideo
         }));
-        
+
         console.log("User videos (transformed):", creationsData);
         setCreations(creationsData);
-        
+
         setIsLoading(false);
         console.log("Profile data and creations loaded successfully");
       } catch (error) {
@@ -435,7 +451,7 @@ export default function MyProfilePage() {
         setIsLoading(false);
       }
     };
-    
+
     loadUserData();
   }, []);
 
@@ -463,19 +479,19 @@ export default function MyProfilePage() {
             <div className="text-white">
               {/* Icono de burbuja de chat actualizado desde pautas de diseño */}
               <svg width="28" height="29" viewBox="0 0 28 29" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M14 25C16.0767 25 18.1068 24.3842 19.8335 23.2304C21.5602 22.0767 22.906 20.4368 23.7007 18.5182C24.4955 16.5996 24.7034 14.4884 24.2982 12.4516C23.8931 10.4148 22.8931 8.54383 21.4246 7.07538C19.9562 5.60693 18.0852 4.6069 16.0484 4.20176C14.0116 3.79661 11.9004 4.00455 9.98182 4.79927C8.0632 5.59399 6.42332 6.9398 5.26957 8.66652C4.11581 10.3932 3.5 12.4233 3.5 14.5C3.5 16.236 3.92 17.8728 4.66667 19.3148L3.5 25L9.18517 23.8333C10.6272 24.58 12.2652 25 14 25Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M14 25C16.0767 25 18.1068 24.3842 19.8335 23.2304C21.5602 22.0767 22.906 20.4368 23.7007 18.5182C24.4955 16.5996 24.7034 14.4884 24.2982 12.4516C23.8931 10.4148 22.8931 8.54383 21.4246 7.07538C19.9562 5.60693 18.0852 4.6069 16.0484 4.20176C14.0116 3.79661 11.9004 4.00455 9.98182 4.79927C8.0632 5.59399 6.42332 6.9398 5.26957 8.66652C4.11581 10.3932 3.5 12.4233 3.5 14.5C3.5 16.236 3.92 17.8728 4.66667 19.3148L3.5 25L9.18517 23.8333C10.6272 24.58 12.2652 25 14 25Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
           </div>
-          
+
           {/* Cabecera del perfil - desplazada hacia arriba con margen negativo */}
           <ProfileHeader userProfile={userProfile} />
-          
+
           {/* Contenedor de fondo blanco con toggle y contenido - ajustado para coincidir con el movimiento de la cabecera */}
           <div className="flex-grow bg-white rounded-t-2xl pt-4 px-4 pb-24 -mt-2">
             {/* Pestañas de navegación - cambiado orden */}
             <TabNavigation activeView={activeView} onViewChange={handleViewChange} />
-            
+
             {/* Contenido basado en la vista activa */}
             {activeView === "creations" ? (
               // Vista de Creaciones - ahora usando datos reales
@@ -490,10 +506,10 @@ export default function MyProfilePage() {
         // Estado de error
         <ErrorState onRetry={handleRetry} />
       )}
-      
+
       {/* Navegación inferior con prop de vista activa */}
       <BottomNav activeView={activeView} />
-      
+
       {/* Estilos personalizados para borde y texto con gradiente */}
       <style jsx global>{`
         .border-gradient-blue-purple {

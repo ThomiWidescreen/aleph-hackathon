@@ -20,7 +20,7 @@ function DetailBottomNav() {
       {/* Botón Create posicionado para que quede a la mitad entre el contenido y el footer */}
       <div className="absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 top-0 z-10">
         <Link
-          href="/create"
+          href="/upload-project"
           className="inline-flex flex-col items-center justify-center"
         >
           <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center bg-gradient-to-br from-[#631497] to-[#3E54F5] shadow-lg">
