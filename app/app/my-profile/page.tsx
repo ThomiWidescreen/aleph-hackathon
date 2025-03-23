@@ -8,7 +8,8 @@ import BottomNav from "../../components/BottomNav";
 import { getUser } from "../api/actions/users/getUser";
 import { getVideosByAuthor } from "../api/actions/file/getVideosByAuthor";
 import { getUserAddress } from "../api/helpers/getUserAddress";
-import VideoThumbnail from "./videoThumbnail";
+import VideoThumbnail from "./VideoThumbnail";
+import { getThumbnailUrl } from "../feed/page";
 
 /**
  * Interfaces para los datos de usuario y videos
@@ -255,11 +256,15 @@ const CreationsList = ({ creations }: { creations: CreationType[] }) => {
   return (
     <div className="space-y-4">
       {creations.map((creation) => (
-        <div key={creation.id} className="bg-[#090619] rounded-xl overflow-hidden p-4 mb-4 border border-gray-800">
+        <Link 
+          href={`/detail?id=${creation.id}`} 
+          key={creation.id} 
+          className="block bg-[#090619] rounded-xl overflow-hidden p-4 mb-4 border border-gray-800 transition-transform hover:scale-[1.01]"
+        >
           <VideoThumbnail urlVideo={creation.thumbnail} />
           <h3 className="text-white text-lg font-semibold mb-1 font-montserrat">{creation.title}</h3>
           <p className="text-[#ADADAD] text-sm font-montserrat font-normal">{creation.description}</p>
-        </div>
+        </Link>
       ))}
     </div>
   );
@@ -403,23 +408,24 @@ export default function MyProfilePage() {
         console.log("User data:", userResponse.user);
         setUserProfile(userResponse.user);
         
-        console.log(userResponse.user)
         // Obtener videos del usuario
-
-        const videosResponse = await getVideosByAuthor( userAddress );
+        const videosResponse = await getVideosByAuthor(userAddress);
+        console.log("Videos response:", videosResponse);
         // if (videosResponse.error) {
         //   throw new Error("Error loading user videos");
         // }
         
         // Convertir IVideo[] a CreationType[] para mantener compatibilidad
-        const creationsData = videosResponse.videos.map(video => ({
-          id: video.id,
+        // Asegurarse de que videosResponse.videos es un array
+        const videos = Array.isArray(videosResponse) ? videosResponse : [];
+        const creationsData = videos.map(video => ({
+          id: video._id,
           title: video.title,
           description: video.description,
           thumbnail: video.urlVideo
         }));
         
-        console.log("User videos:", creationsData);
+        console.log("User videos (transformed):", creationsData);
         setCreations(creationsData);
         
         setIsLoading(false);
