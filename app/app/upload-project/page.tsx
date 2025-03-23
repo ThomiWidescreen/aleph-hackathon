@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BottomNav from "../../components/BottomNav";
 import config from "../../@config.json";
+import { createVideo } from "../api/actions/file/createVideo";
 
 /**
  * Modular component for file upload area
@@ -193,12 +194,15 @@ export default function UploadProjectPage() {
   
   // Video file state
   const [file, setFile] = useState<File | null>(null);
+  const [fileBase64, setFileBase64] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   
   // Validation errors state
   const [errors, setErrors] = useState({
     title: "",
     description: "",
-    file: ""
+    file: "",
+    submit: ""
   });
 
   /**
@@ -234,6 +238,31 @@ export default function UploadProjectPage() {
   }, [errors, updateError]);
 
   /**
+   * Converts file to Base64 string for upload
+   */
+  const convertFileToBase64 = useCallback(async () => {
+    if (!file) return null;
+    
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          resolve(event.target.result.toString());
+        } else {
+          reject(new Error("Failed to convert file to Base64"));
+        }
+      };
+      
+      reader.onerror = (error) => {
+        reject(error);
+      };
+      
+      reader.readAsDataURL(file);
+    });
+  }, [file]);
+
+  /**
    * Validates form before submission
    * @returns Boolean indicating if form is valid
    */
@@ -241,7 +270,8 @@ export default function UploadProjectPage() {
     const newErrors = {
       title: "",
       description: "",
-      file: ""
+      file: "",
+      submit: ""
     };
     
     let isValid = true;
@@ -268,20 +298,57 @@ export default function UploadProjectPage() {
   /**
    * Handles form submission
    */
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate form
-    if (validateForm()) {
-      console.log("Video published:", {
-        ...videoData,
-        file: file?.name
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsUploading(true);
+    setErrors(prev => ({ ...prev, submit: "" }));
+    
+    try {
+      // Convert file to Base64 for upload
+      const base64Data = await convertFileToBase64();
+      
+      if (!base64Data) {
+        throw new Error("Failed to prepare video data");
+      }
+      
+      console.log("Uploading video to backend...");
+      
+      // Prepare tags array from comma-separated string
+      const tagsArray = videoData.tags ? 
+        videoData.tags.split(",").map(tag => tag.trim()) : 
+        [];
+      
+      // Call backend API to create video
+      const result = await createVideo({
+        title: videoData.title,
+        description: videoData.description,
+        category: "General", // Default category
+        price: Number(videoData.price),
+        tags: tagsArray,
+        authorAddress: "0x0c892815f0B058E69987920A23FBb33c834289cf", // TODO: Get from actual user wallet
+        videoData: base64Data
       });
+      
+      console.log("Video uploaded successfully:", result);
       
       // Redirect to profile page with creations view
       router.push("/my-profile?view=creations");
+    } catch (error) {
+      console.error("Error uploading video:", error);
+      setErrors(prev => ({ 
+        ...prev, 
+        submit: "Failed to upload video. Please try again." 
+      }));
+    } finally {
+      setIsUploading(false);
     }
-  }, [validateForm, videoData, file, router]);
+  }, [validateForm, videoData, file, convertFileToBase64, router]);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#090619] font-montserrat">
@@ -349,16 +416,32 @@ export default function UploadProjectPage() {
               name="tags"
               value={videoData.tags}
               onChange={handleInputChange}
-              placeholder="Tags"
+              placeholder="Tags (separate with commas)"
             />
           </div>
+          
+          {/* Error message */}
+          {errors.submit && (
+            <div className="p-3 bg-red-100 text-red-700 rounded-md mb-4">
+              {errors.submit}
+            </div>
+          )}
           
           {/* Publish button */}
           <button
             type="submit"
-            className={`w-full ${config.gradients.primary} text-white font-montserrat text-sm font-medium rounded-full py-3`}
+            disabled={isUploading}
+            className={`w-full ${config.gradients.primary} text-white font-montserrat text-sm font-medium rounded-full py-3 flex items-center justify-center`}
           >
-            Publish
+            {isUploading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Publishing...
+              </>
+            ) : "Publish"}
           </button>
         </form>
       </div>

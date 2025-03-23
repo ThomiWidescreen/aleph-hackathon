@@ -103,17 +103,15 @@ export default function WelcomePage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#090619] p-4 font-montserrat relative overflow-hidden">
-      {/* Background overlay with images */}
-      <div className="absolute inset-0 opacity-50 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#3E54F5] to-[#631497] filter blur-md"></div>
-        {/* This would be replaced with actual images in a real implementation */}
-        <div className="grid grid-cols-3 gap-2 h-full w-full p-4">
-          {[...Array(9)].map((_, index) => (
-            <div key={index} className="bg-black bg-opacity-30 rounded-lg overflow-hidden">
-              <div className="h-full w-full bg-gradient-to-br from-purple-600 to-blue-500 opacity-70"></div>
-            </div>
-          ))}
+      {/* Background overlay with image */}
+      <div className="absolute inset-0 w-full h-full z-0">
+        {/* Primera capa: imagen de fondo */}
+        <div className="absolute inset-0 bg-cover bg-center" 
+             style={{ backgroundImage: 'url("/images/FONDO.png")' }}>
         </div>
+        
+        {/* Segunda capa: overlay para oscurecer y realzar el contenido */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#090619]/30 to-[#090619]/70"></div>
       </div>
       
       {/* Main content */}
@@ -130,7 +128,7 @@ export default function WelcomePage() {
           {/* Profile Image Upload */}
           <div className="flex flex-col items-center mb-8">
             <div 
-              className="w-24 h-24 rounded-full bg-[#631497] flex flex-col items-center justify-center relative cursor-pointer overflow-hidden"
+              className="w-32 h-32 rounded-full bg-gradient-to-r from-[#3E54F5] to-[#631497] flex flex-col items-center justify-center relative cursor-pointer overflow-hidden"
             >
               {formData.profileImage ? (
                 <img 
@@ -141,19 +139,17 @@ export default function WelcomePage() {
               ) : (
                 <>
                   <svg 
-                    className="w-8 h-8 text-white mb-1" 
+                    width="33" 
+                    height="33" 
+                    viewBox="0 0 33 33" 
                     fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24" 
                     xmlns="http://www.w3.org/2000/svg"
+                    className="mb-2"
                   >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
+                    <path d="M3.16669 19.8334C3.16669 20.6213 3.32188 21.4015 3.62341 22.1295C3.92494 22.8574 4.3669 23.5189 4.92405 24.076C6.04927 25.2012 7.57539 25.8334 9.16669 25.8334H25.1667C26.348 25.8355 27.4861 25.3896 28.3515 24.5855C29.2169 23.7815 29.7452 22.6791 29.8298 21.5009C29.9144 20.3226 29.549 19.1561 28.8073 18.2367C28.0656 17.3173 27.0028 16.7133 25.8334 16.5467C25.8464 14.2784 25.0329 12.083 23.5449 10.3708C22.057 8.6587 19.9964 7.54704 17.7485 7.24366C15.5005 6.94029 13.219 7.46596 11.3304 8.72241C9.4418 9.97887 8.07543 11.8801 7.48669 14.0707C6.23996 14.4343 5.14486 15.1927 4.36589 16.2318C3.58691 17.2709 3.16611 18.5347 3.16669 19.8334Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M19.1667 15.1667L16.5 12.5M16.5 12.5L13.8334 15.1667M16.5 12.5V20.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
+                  <p className="text-white text-sm">Upload Photo</p>
                 </>
               )}
               <input 
@@ -164,7 +160,6 @@ export default function WelcomePage() {
                 aria-label="Upload profile image"
               />
             </div>
-            <p className="text-white text-sm mt-2">Upload Photo</p>
           </div>
           
           {/* Username Input */}
@@ -175,7 +170,7 @@ export default function WelcomePage() {
               value={formData.username}
               onChange={handleChange}
               placeholder="Username"
-              className="w-full bg-[#090619] border border-[#3E54F5] rounded-lg p-3 text-white placeholder-[#ADADAD] font-montserrat text-sm focus:outline-none focus:ring-2 focus:ring-[#3E54F5]"
+              className="w-full bg-[#090619]/70 backdrop-blur-sm border border-[#3E54F5] rounded-lg p-3 text-white placeholder-[#ADADAD] font-montserrat text-sm focus:outline-none focus:ring-2 focus:ring-[#3E54F5]"
             />
             {errors.username && (
               <p className="text-red-500 text-xs mt-1">{errors.username}</p>
@@ -189,7 +184,7 @@ export default function WelcomePage() {
               value={formData.description}
               onChange={handleChange}
               placeholder="Description"
-              className="w-full bg-[#090619] border border-[#3E54F5] rounded-lg p-3 min-h-[100px] text-white placeholder-[#ADADAD] font-montserrat text-sm focus:outline-none focus:ring-2 focus:ring-[#3E54F5] resize-none"
+              className="w-full bg-[#090619]/70 backdrop-blur-sm border border-[#3E54F5] rounded-lg p-3 min-h-[100px] text-white placeholder-[#ADADAD] font-montserrat text-sm focus:outline-none focus:ring-2 focus:ring-[#3E54F5] resize-none"
             />
             {errors.description && (
               <p className="text-red-500 text-xs mt-1">{errors.description}</p>
