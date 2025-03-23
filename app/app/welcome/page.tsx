@@ -3,6 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { uploadPhotoProfile } from "../api/helpers/uploadFile";
+import { url } from "inspector";
+import { createUser } from "../api/actions/users/createUser";
+import { get } from "http";
+import { getUserAddress } from "../api/helpers/getUserAddress";
 
 /**
  * Welcome page component for user onboarding
@@ -81,16 +86,29 @@ export default function WelcomePage() {
     setIsSubmitting(true);
     
     try {
-      // Log profile creation attempt with available data
-      console.log("Creating profile with:", { 
-        username: formData.username, 
-        description: formData.description,
-        hasProfileImage: !!formData.profileImage 
-      });
       
-      // In a real application, this would call an API to create the profile
-      // For demo purposes, just simulate a delay and redirect
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Convert profile image to Base64
+      let imageBase64 = '';
+      if (formData.profileImage) {
+        const response = await fetch(formData.profileImage);
+        const blob = await response.blob();
+        imageBase64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
+      
+      const urlImage = await uploadPhotoProfile(imageBase64);
+
+      //TODO: para Alejo: revisar si aca se obtiene la user address asi, cuando firma el contrato.
+      //TODO: también revisar si el user ya existe en DB para evitar esta pantalla al abrir la miniApp
+      const address = getUserAddress();
+
+      const user = await createUser({address, name: formData.username, description: formData.description, photo: urlImage});
+
+      console.log({user});
       
       // After successful profile creation, redirect to the feed
       router.push("/feed");
