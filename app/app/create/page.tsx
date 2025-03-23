@@ -158,7 +158,7 @@ export default function CreateVideoPage() {
         category: video.category,
         price: parseFloat(video.price),
         tags: video.tags.split(",").map((tag) => tag.trim()),
-        authorAddress: "0x0c892815f0B058E69987920A23FBb33c834289cf",
+        authorAddress: "c892815f0B058E69987920A23FBb0x033c834289cf",
         videoData: file || ""
       })
       

@@ -12,6 +12,7 @@ import { getAllVideos } from "../api/actions/file/getAllVideos";
 import { IVideo } from '../api/database/models/video';
 import { getVideosByQuery } from "../api/actions/file/getVideosByQuery";
 import { Header } from "@/components/Header";
+import { getUserAddress } from "../api/helpers/getUserAddress";
 
 /**
  * Tipo que define las posibles proporciones de imagen para los videos
@@ -82,6 +83,21 @@ export default function FeedPage() {
   const [videos, setVideos] = useState<IVideo[]>([]);
   // Estado para controlar la visualización del loader
   const [isLoading, setIsLoading] = useState(true);
+
+
+    const [userAddress, setUserAddress] = useState<`0x${string}` | null>(null)
+  
+    
+      useEffect(() => {
+        getUserAddress().then(e => {
+          if(!e){
+            window.location.href = "/welcome";
+          }
+          setUserAddress(e)
+        }) 
+      }, [
+    
+      ])
 
   /**
    * Obtiene las categorías de filtros desde el archivo de configuración
