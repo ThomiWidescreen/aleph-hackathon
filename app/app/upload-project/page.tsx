@@ -145,7 +145,7 @@ function FormField({
   min?: number;
   step?: string;
 }) {
-  const baseClassName = "w-full bg-[#F5F5F5] rounded-lg p-3 placeholder-[#ADADAD] font-montserrat text-sm font-normal";
+  const baseClassName = "w-full bg-[#F5F5F5] rounded-lg p-3 placeholder-[#ADADAD] font-montserrat text-sm font-normal text-gray-700";
   
   return (
     <div className="mb-4">
@@ -324,6 +324,7 @@ export default function UploadProjectPage() {
         videoData.tags.split(",").map(tag => tag.trim()) : 
         [];
       
+        
       // Call backend API to create video
       const result = await createVideo({
         title: videoData.title,
@@ -355,12 +356,12 @@ export default function UploadProjectPage() {
       {/* Header with back button and chat icon */}
       <div className="pt-4 px-4 pb-2 bg-[#090619]">
         <div className="flex justify-between items-center">
-          <Link href="/my-profile?view=creations" className="text-white">
+          <Link href="/my-profile?view=creations" className="text-black">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
-          <div className="text-white">
+          <div className="text-gray-700">
             <svg width="28" height="29" viewBox="0 0 28 29" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M14 25C16.0767 25 18.1068 24.3842 19.8335 23.2304C21.5602 22.0767 22.906 20.4368 23.7007 18.5182C24.4955 16.5996 24.7034 14.4884 24.2982 12.4516C23.8931 10.4148 22.8931 8.54383 21.4246 7.07538C19.9562 5.60693 18.0852 4.6069 16.0484 4.20176C14.0116 3.79661 11.9004 4.00455 9.98182 4.79927C8.0632 5.59399 6.42332 6.9398 5.26957 8.66652C4.11581 10.3932 3.5 12.4233 3.5 14.5C3.5 16.236 3.92 17.8728 4.66667 19.3148L3.5 25L9.18517 23.8333C10.6272 24.58 12.2652 25 14 25Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -455,4 +456,4 @@ export default function UploadProjectPage() {
       `}</style>
     </div>
   );
-} 
+}
