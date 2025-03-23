@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import BottomNav from "../../components/BottomNav";
+import { useFetchContract } from "@/blockchain/hooks/useGetContracts";
 
 /**
  * Página para aceptar un contrato
@@ -15,14 +16,17 @@ export default function AcceptContractPage() {
   const contractId = searchParams.get('id');
   
   // Estado para los datos del contrato
-  const [contractData, setContractData] = useState({
-    title: "",
-    description: "",
-    deadline: "",
-    finalPayment: 0,
-    minimumCommitment: 0,
-    recipient: ""
-  });
+  // const [contractData, setContractData] = useState({
+  //   title: "",
+  //   description: "",
+  //   deadline: "",
+  //   finalPayment: 0,
+  //   minimumCommitment: 0,
+  //   recipient: ""
+  // });
+
+   const contractData = useFetchContract("0x132e96F1cd2FFA98Fbea103f555b210B8d0aad5f" as `0x${string}`)
+
   
   // Estado para indicar carga de datos
   const [isLoading, setIsLoading] = useState(true);
@@ -30,31 +34,6 @@ export default function AcceptContractPage() {
   // Estado para mostrar confirmación de acción
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  // Cargar datos del contrato
-  useEffect(() => {
-    // Simular carga de datos desde una API
-    const loadContractData = () => {
-      console.log(`Cargando datos del contrato${contractId ? ` ID: ${contractId}` : ''}...`);
-      
-      // Simular retraso de una llamada a API
-      setTimeout(() => {
-        // Datos de ejemplo para el contrato
-        setContractData({
-          title: "The best contract ever",
-          description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience. I'd like smooth cuts, background music, basic text overlays (like ingredients or steps), and some zoom-ins or transitions to make it visually dynamic. The final video should feel professional but still have a warm, homemade vibe that fits the cooking niche.",
-          deadline: "10/10/2028",
-          finalPayment: 4059,
-          minimumCommitment: 4059,
-          recipient: "Franactis"
-        });
-        
-        setIsLoading(false);
-        console.log("Datos del contrato cargados exitosamente");
-      }, 500);
-    };
-    
-    loadContractData();
-  }, [contractId]);
 
   // Función para manejar la aceptación del contrato
   const handleAcceptContract = () => {

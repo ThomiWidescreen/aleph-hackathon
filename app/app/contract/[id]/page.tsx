@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import BottomNav from "../../../components/BottomNav";
 import config from "../../../@config.json";
+import { useFetchContract } from "@/blockchain/hooks/useGetContracts";
 
 // Enum para los estados de contrato
 type ContractStatus = "Pending" | "Accepted" | "Declined" | "Completed" | "Failed" | "Dispute";
@@ -23,88 +24,6 @@ interface ContractData {
   usdEquivalent?: number;
 }
 
-/**
- * Función para cargar datos de contrato desde una API o almacenamiento local
- * Simula la obtención de datos con un ID específico
- */
-const getContractById = (id: string): Promise<ContractData> => {
-  console.log(`Obteniendo contrato con ID: ${id}`);
-  
-  // Simulamos una llamada a API
-  return new Promise((resolve) => {
-    // Datos simulados en base al ID
-    setTimeout(() => {
-      // Mapeo de estados de my-profile a estados de contrato
-      // Para mantener compatibilidad con los contratos existentes en my-profile
-      let profileStatus = "";
-      let deadline = "10/10/2028";
-      
-      // Determinar estado y fecha límite basados en el ID
-      if (id.includes("contract-request")) {
-        profileStatus = "contract_request";
-        deadline = "10/10/2023";
-      } else if (id.includes("in_progress")) {
-        profileStatus = "in_progress";
-        deadline = "15/11/2023";
-      } else if (id.includes("completed")) {
-        profileStatus = "completed";
-        deadline = "05/10/2023";
-      } else if (id.includes("expires_soon")) {
-        profileStatus = "expires_soon";
-        deadline = "25/10/2023";
-      }
-      
-      console.log(`Estado detectado del perfil: ${profileStatus}`);
-      
-      // Mapeo de estados del perfil a estados de la página de detalles
-      let detailStatus: ContractStatus = "Pending";
-      
-      // Mapear estados del perfil a estados de detalles
-      switch (profileStatus) {
-        case "contract_request":
-          detailStatus = "Pending";
-          break;
-        case "in_progress":
-          detailStatus = "Accepted";
-          break;
-        case "completed":
-          detailStatus = "Completed";
-          break;
-        case "expires_soon":
-          detailStatus = "Accepted"; // Consideramos que expira pronto sigue siendo un estado aceptado
-          break;
-        default:
-          // Si no podemos determinar el estado basado en el ID o su contenido,
-          // usamos el último dígito como en la implementación original
-          const lastChar = id.charAt(id.length - 1);
-          if (lastChar === "1") detailStatus = "Pending";
-          else if (lastChar === "2") detailStatus = "Accepted";
-          else if (lastChar === "3") detailStatus = "Completed";
-          else if (lastChar === "4") detailStatus = "Declined";
-          else if (lastChar === "5") detailStatus = "Failed";
-          else if (lastChar === "6") detailStatus = "Dispute";
-      }
-      
-      // Contrato base para simular
-      const baseContract: ContractData = {
-        id,
-        title: "The best contract ever",
-        description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience. I'd like smooth cuts, background music, basic text overlays (like ingredients or steps), and some zoom-ins or transitions to make it visually dynamic. The final video should feel professional but still have a warm, home vibe that fits the cooking niche.",
-        deadline: deadline,
-        finalPayment: 4059,
-        minimumCommitment: 4059,
-        recipient: "Franctis",
-        status: detailStatus,
-        currency: "WLD",
-        usdEquivalent: 100
-      };
-      
-      console.log(`Contrato creado con estado: ${detailStatus}`, baseContract);
-      
-      resolve(baseContract);
-    }, 800);  // Simulamos un retraso de 800ms
-  });
-};
 
 /**
  * Función para actualizar el estado de un contrato
@@ -134,17 +53,9 @@ export default function ContractDetailsPage() {
   const contractId = params.id as string;
   
   // Estado para los datos del contrato
-  const [contractData, setContractData] = useState<ContractData>({
-    id: "",
-    title: "",
-    description: "",
-    deadline: "",
-    finalPayment: 0,
-    minimumCommitment: 0,
-    recipient: "",
-    status: "Pending",
-    currency: "WLD"
-  });
+   const contractData = useFetchContract("0x132e96F1cd2FFA98Fbea103f555b210B8d0aad5f" as `0x${string}`)
+
+  console.log({contractData})
   
   // Estado para indicar carga de datos
   const [isLoading, setIsLoading] = useState(true);
@@ -217,26 +128,26 @@ export default function ContractDetailsPage() {
     return shouldShow;
   };
 
-  // Cargar datos del contrato
-  useEffect(() => {
-    const loadContractData = async () => {
-      setIsLoading(true);
-      setError(null);
+  // // Cargar datos del contrato
+  // useEffect(() => {
+  //   const loadContractData = async () => {
+  //     setIsLoading(true);
+  //     setError(null);
       
-      try {
-        const contract = await getContractById(contractId);
-        setContractData(contract);
-        console.log("Datos del contrato cargados exitosamente:", contract);
-      } catch (err) {
-        console.error("Error al cargar los datos del contrato:", err);
-        setError("No se pudo cargar el contrato. Intente nuevamente.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  //     try {
+  //       const contract = await getContractById(contractId);
+  //       setContractData(contract);
+  //       console.log("Datos del contrato cargados exitosamente:", contract);
+  //     } catch (err) {
+  //       console.error("Error al cargar los datos del contrato:", err);
+  //       setError("No se pudo cargar el contrato. Intente nuevamente.");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
     
-    loadContractData();
-  }, [contractId]);
+  //   loadContractData();
+  // }, [contractId]);
 
   // Función para manejar la acción del botón
   const handleButtonAction = () => {
@@ -258,51 +169,6 @@ export default function ContractDetailsPage() {
   
   // Función para confirmar la acción
   const handleConfirmAction = async () => {
-    setIsProcessing(true);
-    
-    try {
-      let newStatus: ContractStatus;
-      
-      if (contractData.status === "Pending") {
-        newStatus = "Accepted";
-      } else if (contractData.status === "Accepted") {
-        newStatus = "Completed";
-      } else {
-        // No debería ocurrir, pero por si acaso
-        setShowConfirmation(false);
-        setIsProcessing(false);
-        return;
-      }
-      
-      // Llamar a la función de actualización
-      const success = await updateContractStatus(contractId, newStatus);
-      
-      if (success) {
-        // Actualizar el estado local
-        setContractData({
-          ...contractData,
-          status: newStatus
-        });
-        
-        console.log(`Contrato actualizado a estado: ${newStatus}`);
-        
-        // Cerrar el modal de confirmación
-        setShowConfirmation(false);
-        
-        // Redirigir al usuario después de la acción (esperar un momento para que vea el cambio)
-        setTimeout(() => {
-          console.log("Redirigiendo a my-profile?view=contracts");
-          router.push("/my-profile?view=contracts");
-        }, 1500);
-      } else {
-        throw new Error("No se pudo actualizar el estado del contrato");
-      }
-    } catch (err) {
-      console.error("Error al actualizar el contrato:", err);
-      setError("Hubo un error al procesar su solicitud. Intente nuevamente.");
-    } finally {
-      setIsProcessing(false);
-    }
   };
   
   // Función para cancelar la confirmación
@@ -385,13 +251,13 @@ export default function ContractDetailsPage() {
                 {/* Imagen de perfil */}
                 <div className="w-10 h-10 rounded-full overflow-hidden">
                   <div className="w-full h-full bg-[#ADADAD] flex items-center justify-center">
-                    <span className="text-lg text-white font-montserrat">{contractData.recipient.charAt(0)}</span>
+                    <span className="text-lg text-white font-montserrat">{contractData.worker.charAt(0)}</span>
                   </div>
                 </div>
                 
                 <div className="ml-3">
                   {/* Nombre del creador */}
-                  <h2 className="text-white font-montserrat text-lg font-bold">{contractData.recipient}</h2>
+                  <h2 className="text-white font-montserrat text-lg font-bold">{contractData.worker}</h2>
                   
                   {/* Texto de estado con gradiente */}
                   <p className="bg-gradient-to-r from-[#3E54F5] to-[#631497] bg-clip-text text-transparent font-montserrat text-sm font-normal">
@@ -420,7 +286,7 @@ export default function ContractDetailsPage() {
             
             {/* Descripción */}
             <p className="text-[#ADADAD] font-montserrat text-sm font-normal mb-6">
-              {contractData.description}
+              {contractData.overview}
             </p>
             
             {/* Pago final */}
@@ -433,17 +299,15 @@ export default function ContractDetailsPage() {
                 {/* Selector de moneda (no modificable) */}
                 <div className="flex items-center bg-[#F5F5F5] rounded-full px-4 py-3 w-32">
                   <div className="flex items-center">
-                    <span className="text-black font-montserrat text-sm">{contractData.currency}</span>
+                    <span className="text-black font-montserrat text-sm">{contractData.token}</span>
                   </div>
                 </div>
                 
                 {/* Valor */}
                 <div className="flex-grow">
                   <div className="bg-[#F5F5F5] rounded-full py-2 px-4 h-full ml-2 flex flex-col items-end">
-                    <span className="text-[#3E54F5] font-montserrat text-lg font-medium">{contractData.finalPayment}</span>
-                    {contractData.usdEquivalent && (
-                      <span className="text-[#ADADAD] font-montserrat text-xs font-normal">${contractData.usdEquivalent}</span>
-                    )}
+                    <span className="text-[#3E54F5] font-montserrat text-lg font-medium">{contractData.totalAmount}</span>
+                  
                   </div>
                 </div>
               </div>
@@ -465,17 +329,17 @@ export default function ContractDetailsPage() {
                 {/* Selector de moneda (no modificable) */}
                 <div className="flex items-center bg-[#F5F5F5] rounded-full px-4 py-3 w-32">
                   <div className="flex items-center">
-                    <span className="text-black font-montserrat text-sm">{contractData.currency}</span>
+                    <span className="text-black font-montserrat text-sm">{contractData.token}</span>
                   </div>
                 </div>
                 
                 {/* Valor */}
                 <div className="flex-grow">
                   <div className="bg-[#F5F5F5] rounded-full py-2 px-4 h-full ml-2 flex flex-col items-end">
-                    <span className="text-[#3E54F5] font-montserrat text-lg font-medium">{contractData.minimumCommitment}</span>
-                    {contractData.usdEquivalent && (
+                    <span className="text-[#3E54F5] font-montserrat text-lg font-medium">{contractData.insurance}</span>
+                    {/* {contractData.usdEquivalent && (
                       <span className="text-[#ADADAD] font-montserrat text-xs font-normal">${contractData.usdEquivalent}</span>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>

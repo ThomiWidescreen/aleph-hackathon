@@ -10,7 +10,9 @@ import { getVideosByAuthor } from "../api/actions/file/getVideosByAuthor";
 import { getUserAddress } from "../api/helpers/getUserAddress";
 import VideoThumbnail from "./VideoThumbnail";
 import { getThumbnailUrl } from "../feed/page";
+import { useFetchContracts } from "@/blockchain/hooks/useGetContracts";
 import User from "../api/database/models/user";
+import { useAcceptContract } from "@/blockchain/hooks/useAcceptContract";
 
 /**
  * Interfaces para los datos de usuario y videos
@@ -73,13 +75,13 @@ const StatusIndicator = ({ status }: { status: string }) => {
   let textColor = "";
   let statusText = "";
 
-  switch (status) {
-    case "Pending":
+  switch (status.toString()) {
+    case "0":
       statusColor = "bg-yellow-500";
       textColor = "text-yellow-500";
       statusText = "Pending";
       break;
-    case "Accepted":
+    case "1":
       statusColor = "bg-blue-500";
       textColor = "text-blue-500";
       statusText = "In progress";
@@ -274,7 +276,9 @@ const CreationsList = ({ creations }: { creations: CreationType[] }) => {
  * @param contracts Lista de contratos del usuario
  * @returns Elemento JSX con la lista de contratos
  */
-const ContractsList = ({ contracts }: { contracts: ContractType[] }) => {
+const ContractsList = ({ contracts }: { contracts: any[] }) => {
+
+  const {acceptEscrow} = useAcceptContract()
   if (contracts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8">
@@ -290,22 +294,29 @@ const ContractsList = ({ contracts }: { contracts: ContractType[] }) => {
       {contracts.map((contract, index) => (
         <div key={index} className="bg-white rounded-lg p-4 shadow-sm">
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-[#090619] font-montserrat text-base font-medium">{contract.title}</h3>
+            <h3 className="text-[#090619] font-montserrat text-base font-medium">{contract.name}</h3>
             <StatusIndicator status={contract.status} />
           </div>
           <p className="text-[#ADADAD] font-montserrat text-xs mb-3 line-clamp-2">
-            {contract.description}
+            {contract.overview}
           </p>
           <div className="flex justify-between items-center">
             <p className="text-[#090619] font-montserrat text-xs">
-              Deadline: <span className="text-[#3E54F5]">{contract.deadline}</span>
+              Deadline: <span className="text-[#3E54F5]">{new Date(contract.deadline).toUTCString()}</span>
             </p>
-            <Link
-              href={`${config.routes.contractDetails}/${contract.id}`}
+            <div
+              // href={`${config.routes.contractDetails}/${contract.id}`}
+              onClick={async() => {
+                await acceptEscrow({
+                  contractAddress: contract.contract,
+                  amount: Number(contract.insurance * 10 * 18).toString(),
+                  token: contract.token
+                })
+              }}
               className="bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white font-montserrat text-xs px-3 py-1 rounded-full"
             >
-              {contract.status === 'Pending' ? 'Review' : 'View'}
-            </Link>
+              {contract.status === 0 ? 'Accept' : 'View'}
+            </div>
           </div>
         </div>
       ))}
@@ -328,12 +339,7 @@ export default function MyProfilePage() {
 
   useEffect(() => {
     getUserAddress().then(e => {
-      const findUser = User.findOne({
-        address: e
-      })
-      if (!findUser) {
-        window.location.href = "/welcome";
-      }
+
       setUserAddress(e)
     })
   }, [
@@ -343,45 +349,49 @@ export default function MyProfilePage() {
   // Estado para los datos del perfil de usuario
   const [userProfile, setUserProfile] = useState<IUser | null>(null);
 
+  const contracts = useFetchContracts("0x37477d7de63acc2bab69e772f54aa71ce489a2a4", "worker")
+
+  console.log({contracts})
+  
   // Estado para las creaciones (videos) del usuario
   const [creations, setCreations] = useState<CreationType[]>([]);
 
   // Estado para los contratos (aún mockupeados)
-  const [contracts, setContracts] = useState<ContractType[]>([
-    {
-      id: "contract-request-001",
-      title: "The best contract ever",
-      description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
-      status: "Pending",
-      deadline: "10/10/2023",
-      price: 4059
-    },
-    {
-      id: "contract-in_progress-001",
-      title: "The best contract ever",
-      status: "Accepted",
-      description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
-      price: 4059,
-      deadline: "15/11/2023"
-    },
-    {
-      id: "contract-completed-001",
-      title: "The best contract ever",
-      status: "Completed",
-      description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
-      price: 4059,
-      deadline: "05/10/2023"
-    },
-    {
-      id: "contract-expires_soon-001",
-      title: "The best contract ever",
-      status: "Dispute",
-      description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
-      price: 4059,
-      deadline: "25/10/2023"
-    }
-  ]);
-
+  // const [contracts, setContracts] = useState<ContractType[]>([
+  //   {
+  //     id: "contract-request-001",
+  //     title: "The best contract ever",
+  //     description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
+  //     status: "Pending",
+  //     deadline: "10/10/2023",
+  //     price: 4059
+  //   },
+  //   { 
+  //     id: "contract-in_progress-001", 
+  //     title: "The best contract ever", 
+  //     status: "Accepted",
+  //     description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
+  //     price: 4059,
+  //     deadline: "15/11/2023"
+  //   },
+  //   { 
+  //     id: "contract-completed-001", 
+  //     title: "The best contract ever", 
+  //     status: "Completed",
+  //     description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
+  //     price: 4059,
+  //     deadline: "05/10/2023"
+  //   },
+  //   { 
+  //     id: "contract-expires_soon-001", 
+  //     title: "The best contract ever", 
+  //     status: "Dispute",
+  //     description: "I need editing for a cooking video intended for YouTube. The raw footage is approximately 21 minutes long. The goal is to turn it into a polished, engaging video suitable for a YouTube audience.",
+  //     price: 4059,
+  //     deadline: "25/10/2023"
+  //   }
+  // ]);
+  
   // Estado para indicar carga de datos
   const [isLoading, setIsLoading] = useState(true);
 
@@ -412,20 +422,22 @@ export default function MyProfilePage() {
 
       try {
         // Obtener dirección del usuario
-        const userAddress = getUserAddress();
+        const userAddress = await getUserAddress();
         console.log("User address:", userAddress);
 
         // Obtener datos del usuario
-        const userResponse = await getUser({ address: userAddress });
+        const userResponse = await getUser({ address: userAddress as string });
         if (userResponse.error) {
           throw new Error("Error loading user data");
         }
 
+        if(!userResponse.user) return
+        
         console.log("User data:", userResponse.user);
         setUserProfile(userResponse.user);
 
         // Obtener videos del usuario
-        const videosResponse = await getVideosByAuthor(userAddress);
+        const videosResponse = await getVideosByAuthor(userAddress as string);
         console.log("Videos response:", videosResponse);
         // if (videosResponse.error) {
         //   throw new Error("Error loading user videos");
@@ -435,6 +447,7 @@ export default function MyProfilePage() {
         // Asegurarse de que videosResponse.videos es un array
         const videos = Array.isArray(videosResponse) ? videosResponse : [];
         const creationsData = videos.map(video => ({
+          //@ts-ignore
           id: video._id,
           title: video.title,
           description: video.description,
@@ -498,7 +511,8 @@ export default function MyProfilePage() {
               <CreationsList creations={creations} />
             ) : (
               // Vista de Contratos - aún usando datos mockupeados
-              <ContractsList contracts={contracts} />
+              <ContractsList contracts={contracts}/>
+         
             )}
           </div>
         </>

@@ -1,248 +1,309 @@
 "use client";
 
+/**
+ * Importaciones de React y Next.js necesarias para el componente
+ */
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import config from "./../@config.json";
 import Image from "next/image";
-import { uploadPhotoProfile } from "./api/helpers/uploadFile";
-import { url } from "inspector";
-import { createUser } from "./api/actions/users/createUser";
-import { get } from "http";
+import { getAllVideos } from "./api/actions/file/getAllVideos";
+import { IVideo } from './api/database/models/video';
+import { getVideosByQuery } from "./api/actions/file/getVideosByQuery";
+import { Header } from "@/components/Header";
 import { getUserAddress } from "./api/helpers/getUserAddress";
-import User from "./api/database/models/user";
+import BottomNav from "@/components/BottomNav";
 
 /**
- * Welcome page component for user onboarding
- * Allows users to create a profile by entering username, description, and profile image
+ * Tipo que define las posibles proporciones de imagen para los videos
  */
-export default function WelcomePage() {
-  const router = useRouter();
+type AspectRatioType = 'horizontal' | 'vertical' | 'square' | string;
 
-  const [userAddress, setUserAddress] = useState<`0x${string}` | null>(null)
+
+export const getThumbnailUrl = (videoUrl: string | null | undefined): string => {
+  // Fallback si la URL no existe o es inválida
+  if (!videoUrl) {
+    return 'https://via.placeholder.com/400x500';
+  }
+
+  // Forzar el protocolo a https
+  let normalizedUrl = videoUrl;
+  if (videoUrl.startsWith('http://')) {
+    normalizedUrl = videoUrl.replace('http://', 'https://');
+  }
+
+  // Dividir la URL en partes para manipularla
+  const urlParts = normalizedUrl.split('/');
+
+  // Encontrar la posición de "upload" en la URL
+  const uploadIndex = urlParts.indexOf('upload');
+  if (uploadIndex === -1) {
+    return 'https://via.placeholder.com/400x500'; // Fallback si la URL no tiene "upload"
+  }
+
+  // Insertar "so_5" después de "upload"
+  urlParts.splice(uploadIndex + 1, 0, 'so_5');
+
+  // Obtener la última parte de la URL (el nombre del archivo con extensión)
+  const lastPartIndex = urlParts.length - 1;
+  const lastPart = urlParts[lastPartIndex];
+
+  // Reemplazar la extensión del archivo (por ejemplo, .mp4) por .jpg
+  urlParts[lastPartIndex] = lastPart.replace(/\.(mp4|webm|ogg)$/i, '.jpg');
+
+  // Reconstruir la URL
+  const thumbnailUrl = urlParts.join('/');
+
+  return thumbnailUrl;
+};
+
+/**
+ * Estilos para ocultar la barra de desplazamiento horizontal
+ * Compatible con Firefox, IE/Edge y Chrome/Safari/Opera
+ */
+const hideScrollbarStyle = {
+  scrollbarWidth: 'none' as 'none',  // Firefox
+  msOverflowStyle: 'none' as 'none',  // IE/Edge
+  WebkitScrollbar: {
+    display: 'none'  // Chrome/Safari/Opera
+  }
+} as React.CSSProperties;
+
+/**
+ * Componente principal de la página Feed (Artmarket)
+ * Muestra un grid de videos disponibles en la plataforma con:
+ * - Filtros de categoría
+ * - Visualización en dos columnas
+ * - Estados de carga y manejo de errores
+ */
+export default function FeedPage() {
+  // Estado para el filtro activo (categoría seleccionada)
+  const [activeFilter, setActiveFilter] = useState("All");
+  // Estado para almacenar los videos cargados
+  const [videos, setVideos] = useState<IVideo[]>([]);
+  // Estado para controlar la visualización del loader
+  const [isLoading, setIsLoading] = useState(true);
+
+
+    const [userAddress, setUserAddress] = useState<`0x${string}` | null>(null)
   
     
-      useEffect(() => {
-        getUserAddress().then(e => {
-          const findUser = User.findOne({
-            address: e
-          })
-          if (!!findUser) {
-            window.location.href = "/feed";
-          }
-          setUserAddress(e)
-        })
-      }, [])
+      // useEffect(() => {
+      //   getUserAddress().then(e => {
+      //     if(!e){
+      //       window.location.href = "/welcome";
+      //     }
+      //     setUserAddress(e)
+      //   }) 
+      // }, [
     
+      // ])
 
+  /**
+   * Obtiene las categorías de filtros desde el archivo de configuración
+   * Si no existen, usa un array predeterminado de categorías
+   */
+  const filters = config.categories.video || ["All", "Fitness", "Cooking", "Lifestyle", "Streaming", "Blog", "Product Reviews"];
 
-  const [formData, setFormData] = useState({
-    username: "",
-    description: "",
-    profileImage: null as string | null
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState({
-    username: "",
-    description: ""
-  });
-
-  // Handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear error when user types
-    if (errors[name as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
-    }
-  };
-
-  // Handle image upload
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setFormData(prev => ({ 
-            ...prev, 
-            profileImage: event.target?.result as string 
-          }));
-        }
-      };
-      
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Validate form data
-  const validateForm = () => {
-    let isValid = true;
-    const newErrors = { username: "", description: "" };
-    
-    if (!formData.username.trim()) {
-      newErrors.username = "Username is required";
-      isValid = false;
-    }
-    
-    if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
-      isValid = false;
-    }
-    
-    setErrors(newErrors);
-    return isValid;
-  };
-
-  // Handle form submission
-  const handleCreateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      
-      // Convert profile image to Base64
-      let imageBase64 = '';
-      if (formData.profileImage) {
-        const response = await fetch(formData.profileImage);
-        const blob = await response.blob();
-        imageBase64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
+  /**
+   * Efecto que se ejecuta al montar el componente
+   * Carga todos los videos disponibles en la plataforma
+   */
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        // Activar estado de carga
+        setIsLoading(true);
+        console.log("Obteniendo todos los videos del servidor...");
+        // Llamar al server action getAllVideos
+        const response = await getAllVideos();
+        // Actualizar el estado con los videos recibidos o un array vacío
+        setVideos(response.videos || []);
+      } catch (error) {
+        // Manejo de errores: log y limpiar el estado
+        console.error("Error al cargar los videos:", error);
+        setVideos([]);
+      } finally {
+        // Desactivar estado de carga al finalizar
+        setIsLoading(false);
       }
-      
-      const urlImage = await uploadPhotoProfile(imageBase64);
+    };
 
-      //TODO: para Alejo: revisar si aca se obtiene la user address asi, cuando firma el contrato.
-      //TODO: también revisar si el user ya existe en DB para evitar esta pantalla al abrir la miniApp
-      const address = getUserAddress();
+    // Ejecutar la función de carga
+    fetchVideos();
+  }, []);
 
-      const user = await createUser({address, name: formData.username, description: formData.description, photo: urlImage});
+  /**
+   * Maneja el cambio de filtro/categoría
+   * @param filter - Categoría seleccionada por el usuario
+   */
+  const handleFilterChange = async (filter: string) => {
+    // Actualizar el filtro activo
+    setActiveFilter(filter);
+    // Activar estado de carga
+    setIsLoading(true);
 
-      console.log({user});
-      
-      // After successful profile creation, redirect to the feed
-      router.push("/feed");
+    try {
+      console.log(`Filtrando videos por categoría: ${filter}`);
+      let response;
+      // Si el filtro es "All", obtener todos los videos
+      if (filter === "All") {
+        response = await getAllVideos();
+      } else {
+        // Si no, filtrar por la categoría seleccionada
+        response = await getVideosByQuery({ query: filter });
+      }
+
+      // Actualizar el estado con los videos filtrados
+      setVideos(response.videos || []);
     } catch (error) {
-      console.error("Error creating profile:", error);
+      // Manejo de errores: log y limpiar el estado
+      console.error(`Error al filtrar videos por ${filter}:`, error);
+      setVideos([]);
     } finally {
-      setIsSubmitting(false);
+      // Desactivar estado de carga al finalizar
+      setIsLoading(false);
     }
   };
+
+  /**
+   * Determina la clase CSS para la proporción de imagen según el tipo
+   * @param type - Tipo de proporción de imagen
+   * @returns Clase CSS para aplicar la proporción correcta
+   */
+  const getAspectRatioClass = (type: AspectRatioType): string => {
+    switch (type) {
+      case 'horizontal':
+        return 'aspect-video'; // 16:9
+      case 'vertical':
+        return 'aspect-[4/5]'; // 4:5
+      case 'square':
+        return 'aspect-square'; // 1:1
+      default:
+        return 'aspect-[4/5]'; // Valor predeterminado
+    }
+  };
+
+  /**
+   * Asigna una proporción de imagen a cada video basada en su posición
+   * Nota: En una implementación real, esta información vendría del backend
+   * @param index - Índice del video en la lista
+   * @returns Tipo de proporción de imagen a utilizar
+   */
+  const getAspectRatioForVideo = (index: number): AspectRatioType => {
+    // Patrón de proporciones que se repite para crear variedad visual
+    const patterns = ['vertical', 'horizontal', 'square', 'vertical', 'horizontal', 'vertical'];
+    return patterns[index % patterns.length];
+  };
+
+
+
+
+
+
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#090619] p-4 font-montserrat relative overflow-hidden">
-      {/* Background overlay with image */}
-      <div className="absolute inset-0 w-full h-full z-0">
-        {/* Primera capa: imagen de fondo */}
-        <div className="absolute inset-0 bg-cover bg-center" 
-             style={{ backgroundImage: 'url("/images/FONDO.png")' }}>
-        </div>
-        
-        {/* Segunda capa: overlay para oscurecer y realzar el contenido */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#090619]/30 to-[#090619]/70"></div>
-      </div>
-      
-      {/* Main content */}
-      <div className="z-10 w-full max-w-md flex flex-col items-center">
-        {/* Logo */}
-        <h1 className="text-white text-4xl font-bold mb-2">CLIPEO</h1>
-        
-        {/* Tagline */}
-        <p className="text-white text-sm font-normal mb-12">
-          Hire top video talent or get inspired
-        </p>
-        
-        <form onSubmit={handleCreateProfile} className="w-full space-y-6">
-          {/* Profile Image Upload */}
-          <div className="flex flex-col items-center mb-8">
-            <div 
-              className="w-32 h-32 rounded-full bg-gradient-to-r from-[#3E54F5] to-[#631497] flex flex-col items-center justify-center relative cursor-pointer overflow-hidden"
+    <div className="flex flex-col min-h-screen bg-[#FEFDF9]">
+      {/* Cabecera con logo y botón de chat */}
+      <Header />
+      {/* Barra de filtros por categoría */}
+      <div className="bg-[#FEFDF9] shadow-sm px-4 py-3 overflow-x-auto scrollbar-hide" style={hideScrollbarStyle}>
+        <div className="flex space-x-2 whitespace-nowrap font-montserrat">
+          {filters.map(filter => (
+            <button
+              key={filter}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium font-montserrat ${activeFilter === filter
+                ? 'bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white'
+                : 'bg-[#EAEAEA] text-black'
+                }`}
+              onClick={() => handleFilterChange(filter)}
             >
-              {formData.profileImage ? (
-                <img 
-                  src={formData.profileImage} 
-                  alt="Profile preview" 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <>
-                  <svg 
-                    width="33" 
-                    height="33" 
-                    viewBox="0 0 33 33" 
-                    fill="none" 
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="mb-2"
-                  >
-                    <path d="M3.16669 19.8334C3.16669 20.6213 3.32188 21.4015 3.62341 22.1295C3.92494 22.8574 4.3669 23.5189 4.92405 24.076C6.04927 25.2012 7.57539 25.8334 9.16669 25.8334H25.1667C26.348 25.8355 27.4861 25.3896 28.3515 24.5855C29.2169 23.7815 29.7452 22.6791 29.8298 21.5009C29.9144 20.3226 29.549 19.1561 28.8073 18.2367C28.0656 17.3173 27.0028 16.7133 25.8334 16.5467C25.8464 14.2784 25.0329 12.083 23.5449 10.3708C22.057 8.6587 19.9964 7.54704 17.7485 7.24366C15.5005 6.94029 13.219 7.46596 11.3304 8.72241C9.4418 9.97887 8.07543 11.8801 7.48669 14.0707C6.23996 14.4343 5.14486 15.1927 4.36589 16.2318C3.58691 17.2709 3.16611 18.5347 3.16669 19.8334Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M19.1667 15.1667L16.5 12.5M16.5 12.5L13.8334 15.1667M16.5 12.5V20.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <p className="text-white text-sm">Upload Photo</p>
-                </>
-              )}
-              <input 
-                type="file" 
-                className="opacity-0 absolute inset-0 cursor-pointer" 
-                accept="image/*"
-                onChange={handleImageUpload}
-                aria-label="Upload profile image"
-              />
+              {filter}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Contenido principal - Grid de videos */}
+      <main className="flex-grow p-2 sm:p-3 pb-20 bg-[#FEFDF9] font-montserrat">
+        {isLoading ? (
+          // Estado de carga - Muestra un spinner centrado
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#3E54F5]"></div>
+          </div>
+        ) : videos.length === 0 ? (
+          // Estado vacío - No hay videos en la categoría seleccionada
+          <div className="flex justify-center items-center h-64">
+            <p className="text-gray-500 text-center">No videos found for this category</p>
+          </div>
+        ) : (
+          // Layout de dos columnas para mostrar los videos
+          <div className="flex flex-row gap-2 sm:gap-3">
+            {/* Primera columna - Muestra videos en posiciones pares */}
+            <div className="w-1/2 flex flex-col gap-2 sm:gap-3">
+              {videos
+                .filter((_, index) => index % 2 === 0)
+                .map((video, index) => (
+                  <div key={video.id}>
+                    <Link href={`/detail?id=${video._id}`} className="block">
+                      <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-sm">
+                        {/* Etiqueta de precio */}
+                        <div className="absolute top-1 sm:top-2 right-1 sm:right-2 z-10 bg-black/25 backdrop-blur-sm text-white font-light py-1 px-2 sm:py-1.5 sm:px-4 rounded-full text-xs sm:text-sm tracking-wide font-montserrat">
+                          <span className="font-light">$</span>{video.price}
+                        </div>
+
+                        {/* Imagen del video con proporción dinámica */}
+                        <div className={`relative w-full ${getAspectRatioClass(getAspectRatioForVideo(index * 2))}`}>
+                          <Image
+                            // src={"https://res.cloudinary.com/dc2xcjktb/video/upload/so_5/v1742621337/voqwurzepof1crnvjj8c.jpg"}
+                            src={getThumbnailUrl(video.urlVideo)}
+                            alt={video.title}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 45vw, 33vw"
+                            priority={index === 0}
+                          />
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                ))}
+            </div>
+
+            {/* Segunda columna - Muestra videos en posiciones impares */}
+            <div className="w-1/2 flex flex-col gap-2 sm:gap-3">
+              {videos
+                .filter((_, index) => index % 2 === 1)
+                .map((video, index) => (
+                  <div key={video.id}>
+                    <Link href={`/detail?id=${video._id}`} className="block">
+                      <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-sm">
+                        {/* Etiqueta de precio */}
+                        <div className="absolute top-1 sm:top-2 right-1 sm:right-2 z-10 bg-black/25 backdrop-blur-sm text-white font-light py-1 px-2 sm:py-1.5 sm:px-4 rounded-full text-xs sm:text-sm tracking-wide font-montserrat">
+                          <span className="font-light">$</span>{video.price}
+                        </div>
+
+                        {/* Imagen del video con proporción dinámica */}
+                        <div className={`relative w-full ${getAspectRatioClass(getAspectRatioForVideo(index * 2 + 1))}`}>
+                          <Image
+                            src={getThumbnailUrl(video.urlVideo)}
+                            alt={video.title}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 45vw, 33vw"
+                          />
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                ))}
             </div>
           </div>
-          
-          {/* Username Input */}
-          <div className="w-full">
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              placeholder="Username"
-              className="w-full bg-[#090619]/70 backdrop-blur-sm border border-[#3E54F5] rounded-lg p-3 text-white placeholder-[#ADADAD] font-montserrat text-sm focus:outline-none focus:ring-2 focus:ring-[#3E54F5]"
-            />
-            {errors.username && (
-              <p className="text-red-500 text-xs mt-1">{errors.username}</p>
-            )}
-          </div>
-          
-          {/* Description Input */}
-          <div className="w-full">
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Description"
-              className="w-full bg-[#090619]/70 backdrop-blur-sm border border-[#3E54F5] rounded-lg p-3 min-h-[100px] text-white placeholder-[#ADADAD] font-montserrat text-sm focus:outline-none focus:ring-2 focus:ring-[#3E54F5] resize-none"
-            />
-            {errors.description && (
-              <p className="text-red-500 text-xs mt-1">{errors.description}</p>
-            )}
-          </div>
-          
-          {/* Create Profile Button */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-white text-[#090619] font-montserrat text-sm font-medium py-3 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white disabled:bg-gray-400 disabled:text-gray-600 transition-colors mt-8"
-          >
-            {isSubmitting ? "Creating..." : "Create Profile"}
-          </button>
-        </form>
-      </div>
-      
-      {/* Font import */}
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap');
-      `}</style>
+        )}
+      </main>
+
+      {/* Barra de navegación inferior */}
+      <BottomNav />
     </div>
   );
 } 

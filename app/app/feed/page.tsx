@@ -88,16 +88,16 @@ export default function FeedPage() {
     const [userAddress, setUserAddress] = useState<`0x${string}` | null>(null)
   
     
-      useEffect(() => {
-        getUserAddress().then(e => {
-          if(!e){
-            window.location.href = "/welcome";
-          }
-          setUserAddress(e)
-        }) 
-      }, [
+      // useEffect(() => {
+      //   getUserAddress().then(e => {
+      //     if(!e){
+      //       window.location.href = "/welcome";
+      //     }
+      //     setUserAddress(e)
+      //   }) 
+      // }, [
     
-      ])
+      // ])
 
   /**
    * Obtiene las categorías de filtros desde el archivo de configuración
