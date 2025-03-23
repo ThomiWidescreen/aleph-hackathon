@@ -1,17 +1,10 @@
 "use server"
 
-import Video from "@database/models/video";
+import Video, { IVideo } from "@database/models/video";
 
 export const getVideosByAuthor = async( authorAddress: string ) => {
 
-    const videos = await Video.find({ authorAddress });
+    const videos = await Video.find({ authorAddress }) as IVideo[];
 
-    if (!videos) {
-        return [];
-    }
-
-    return ({
-        messaje: 'OK Get Videos',
-        videos
-    })
+    return videos || [];
 }

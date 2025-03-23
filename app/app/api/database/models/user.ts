@@ -1,4 +1,4 @@
-import { Schema, model, models } from "mongoose";
+import { Schema, model, models} from "mongoose";
 
 export interface IUser {
     address: string;
@@ -25,7 +25,7 @@ const UserSchema = new Schema<IUser>({
     },
     photo: {
         type: String,
-        default: 'no-photo.jpg'
+        // default: ''
     },
     state: {
         type: Boolean,
@@ -47,6 +47,6 @@ const UserSchema = new Schema<IUser>({
 //     return usuario;
 // }
 
-const User = models.User || model('User', UserSchema);
+const User = models.User<IUser> || model<IUser>('User', UserSchema);
 
 export default User;

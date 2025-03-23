@@ -8,19 +8,53 @@ import Link from "next/link";
 import config from "../../@config.json";
 import BottomNav from "../../components/BottomNav";
 import Image from "next/image";
-
-/**
- * Importación de server actions para la gestión de videos
- * getAllVideos: Obtiene todos los videos disponibles
- * getVideosByQuery: Filtra videos por categoría
- * IVideo: Interfaz que define la estructura de datos de un video
- */
-import { getAllVideos, getVideosByQuery, IVideo } from "../api/actions/video.actions";
+import { getAllVideos } from "../api/actions/file/getAllVideos";
+import { IVideo } from '../api/database/models/video';
+import { getVideosByQuery } from "../api/actions/file/getVideosByQuery";
+import { Header } from "@/components/Header";
 
 /**
  * Tipo que define las posibles proporciones de imagen para los videos
  */
 type AspectRatioType = 'horizontal' | 'vertical' | 'square' | string;
+
+
+export const getThumbnailUrl = (videoUrl: string | null | undefined): string => {
+  // Fallback si la URL no existe o es inválida
+  if (!videoUrl) {
+    return 'https://via.placeholder.com/400x500';
+  }
+
+  // Forzar el protocolo a https
+  let normalizedUrl = videoUrl;
+  if (videoUrl.startsWith('http://')) {
+    normalizedUrl = videoUrl.replace('http://', 'https://');
+  }
+
+  // Dividir la URL en partes para manipularla
+  const urlParts = normalizedUrl.split('/');
+
+  // Encontrar la posición de "upload" en la URL
+  const uploadIndex = urlParts.indexOf('upload');
+  if (uploadIndex === -1) {
+    return 'https://via.placeholder.com/400x500'; // Fallback si la URL no tiene "upload"
+  }
+
+  // Insertar "so_5" después de "upload"
+  urlParts.splice(uploadIndex + 1, 0, 'so_5');
+
+  // Obtener la última parte de la URL (el nombre del archivo con extensión)
+  const lastPartIndex = urlParts.length - 1;
+  const lastPart = urlParts[lastPartIndex];
+
+  // Reemplazar la extensión del archivo (por ejemplo, .mp4) por .jpg
+  urlParts[lastPartIndex] = lastPart.replace(/\.(mp4|webm|ogg)$/i, '.jpg');
+
+  // Reconstruir la URL
+  const thumbnailUrl = urlParts.join('/');
+
+  return thumbnailUrl;
+};
 
 /**
  * Estilos para ocultar la barra de desplazamiento horizontal
@@ -68,7 +102,7 @@ export default function FeedPage() {
         // Llamar al server action getAllVideos
         const response = await getAllVideos();
         // Actualizar el estado con los videos recibidos o un array vacío
-        setVideos(response || []);
+        setVideos(response.videos || []);
       } catch (error) {
         // Manejo de errores: log y limpiar el estado
         console.error("Error al cargar los videos:", error);
@@ -105,7 +139,7 @@ export default function FeedPage() {
       }
 
       // Actualizar el estado con los videos filtrados
-      setVideos(response || []);
+      setVideos(response.videos || []);
     } catch (error) {
       // Manejo de errores: log y limpiar el estado
       console.error(`Error al filtrar videos por ${filter}:`, error);
@@ -122,7 +156,7 @@ export default function FeedPage() {
    * @returns Clase CSS para aplicar la proporción correcta
    */
   const getAspectRatioClass = (type: AspectRatioType): string => {
-    switch(type) {
+    switch (type) {
       case 'horizontal':
         return 'aspect-video'; // 16:9
       case 'vertical':
@@ -146,33 +180,26 @@ export default function FeedPage() {
     return patterns[index % patterns.length];
   };
 
+
+
+
+
+
+
   return (
     <div className="flex flex-col min-h-screen bg-[#FEFDF9]">
       {/* Cabecera con logo y botón de chat */}
-      <header className="sticky top-0 z-20 bg-black shadow-sm px-4 py-3 flex justify-between items-center">
-        <div className="font-bold font-montserrat text-white text-xl">LOGO</div>
-        <button className="text-white">
-          <Image 
-            src="/icons/chat.svg"
-            width={30}
-            height={30}
-            alt="Chat"
-            className="w-7 h-7"
-          />
-        </button>
-      </header>
-
+      <Header />
       {/* Barra de filtros por categoría */}
       <div className="bg-[#FEFDF9] shadow-sm px-4 py-3 overflow-x-auto scrollbar-hide" style={hideScrollbarStyle}>
         <div className="flex space-x-2 whitespace-nowrap font-montserrat">
           {filters.map(filter => (
             <button
               key={filter}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium font-montserrat ${
-                activeFilter === filter 
-                  ? 'bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white'
-                  : 'bg-[#EAEAEA] text-black'
-              }`}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium font-montserrat ${activeFilter === filter
+                ? 'bg-gradient-to-r from-[#3E54F5] to-[#631497] text-white'
+                : 'bg-[#EAEAEA] text-black'
+                }`}
               onClick={() => handleFilterChange(filter)}
             >
               {filter}
@@ -208,11 +235,12 @@ export default function FeedPage() {
                         <div className="absolute top-1 sm:top-2 right-1 sm:right-2 z-10 bg-black/25 backdrop-blur-sm text-white font-light py-1 px-2 sm:py-1.5 sm:px-4 rounded-full text-xs sm:text-sm tracking-wide font-montserrat">
                           <span className="font-light">$</span>{video.price}
                         </div>
-                        
+
                         {/* Imagen del video con proporción dinámica */}
                         <div className={`relative w-full ${getAspectRatioClass(getAspectRatioForVideo(index * 2))}`}>
                           <Image
-                            src={video.thumbnailUrl || "https://via.placeholder.com/400x500"}
+                            // src={"https://res.cloudinary.com/dc2xcjktb/video/upload/so_5/v1742621337/voqwurzepof1crnvjj8c.jpg"}
+                            src={getThumbnailUrl(video.urlVideo)}
                             alt={video.title}
                             fill
                             className="object-cover"
@@ -225,7 +253,7 @@ export default function FeedPage() {
                   </div>
                 ))}
             </div>
-            
+
             {/* Segunda columna - Muestra videos en posiciones impares */}
             <div className="w-1/2 flex flex-col gap-2 sm:gap-3">
               {videos
@@ -238,11 +266,11 @@ export default function FeedPage() {
                         <div className="absolute top-1 sm:top-2 right-1 sm:right-2 z-10 bg-black/25 backdrop-blur-sm text-white font-light py-1 px-2 sm:py-1.5 sm:px-4 rounded-full text-xs sm:text-sm tracking-wide font-montserrat">
                           <span className="font-light">$</span>{video.price}
                         </div>
-                        
+
                         {/* Imagen del video con proporción dinámica */}
                         <div className={`relative w-full ${getAspectRatioClass(getAspectRatioForVideo(index * 2 + 1))}`}>
                           <Image
-                            src={video.thumbnailUrl || "https://via.placeholder.com/400x500"}
+                            src={getThumbnailUrl(video.urlVideo)}
                             alt={video.title}
                             fill
                             className="object-cover"

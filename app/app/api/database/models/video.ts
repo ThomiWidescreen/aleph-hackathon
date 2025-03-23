@@ -1,6 +1,6 @@
 import { Schema, model, models } from "mongoose";
 
-interface IVideo {
+export interface IVideo {
     id: string,
     title: string;
     description: string;
@@ -42,4 +42,4 @@ const VideoSchema = new Schema<IVideo>({
 
 
 //@ts-ignore
-export default models.Video || model("Video", VideoSchema);
+export default models.Video<IVideo> || model<IVideo>("Video", VideoSchema);

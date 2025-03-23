@@ -5,6 +5,13 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import config from "../../@config.json";
+import { getVideoDetail } from "../api/actions/file/getVideoDetail";
+import { IVideo } from "@database/models/video";
+import { getThumbnailUrl } from "../feed/page";
+import { IUser } from "../api/database/models/user";
+import { getUser } from "../api/actions/users/getUser";
+import { getUserAddress } from "../api/helpers/getUserAddress";
+
 
 // Create a custom BottomNav component just for the detail page
 function DetailBottomNav() {
@@ -100,91 +107,107 @@ export default function DetailPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const projectId = searchParams.get("id");
-  
-  // State for the project details
-  const [project, setProject] = useState<{
-    id: number;
-    title: string;
-    price: number;
-    color: string;
-    description: string;
-    creatorId: number;
-    creatorName: string;
-    imageUrl: string;
-    profileImageUrl: string;
-  } | null>(null);
-  
+
+  const [project, setProject] = useState<IVideo>()
+  const [creator, setCreator] = useState<IUser>();
+
   const [isLoading, setIsLoading] = useState(true);
   const [profileImageError, setProfileImageError] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
   const videoContainerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+
+  useEffect(() => {
+    setIsLoading(true);
+
+    const fetchUser = async (authorAddress: string) => {
+      const user = await getUser({ address: authorAddress })
+      setCreator(user?.user)
+    }
+    
+    getVideoDetail(projectId!).then((video) => {
+
+      if(video?.video) {
+        setProject(video?.video)
+        console.log(video?.video)
+        fetchUser(video?.video.authorAddress)
+      }
+      setIsLoading(false)
+
+    });
+  }
+  ,[])
+
   
-  // Mock data - in a real app, this would be fetched from an API
-  const mockProjects = [
-    { 
-      id: 1, 
-      title: "3D Animation", 
-      price: 40, 
-      color: "bg-blue-100",
-      description: "Professional 3D animation services for your projects. High quality renders with attention to detail.",
-      creatorId: 101,
-      creatorName: "Alex Designer",
-      imageUrl: "https://images.unsplash.com/photo-1617296956430-cf0fc6cce243?q=80&w=1000&auto=format&fit=crop",
-      profileImageUrl: "https://randomuser.me/api/portraits/men/32.jpg"
-    },
-    { 
-      id: 2, 
-      title: "Motion Graphics", 
-      price: 20, 
-      color: "bg-green-100",
-      description: "Creative motion graphics for videos, presentations, and social media content.",
-      creatorId: 102,
-      creatorName: "Maria Motion",
-      imageUrl: "https://images.unsplash.com/photo-1626544827763-d516dce335e2?q=80&w=1000&auto=format&fit=crop",
-      profileImageUrl: "https://randomuser.me/api/portraits/women/44.jpg"
-    },
-    { 
-      id: 3, 
-      title: "Video Editing", 
-      price: 10, 
-      color: "bg-purple-100",
-      description: "Professional video editing services including color correction, transitions, and effects.",
-      creatorId: 103,
-      creatorName: "John Editor",
-      imageUrl: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?q=80&w=1000&auto=format&fit=crop",
-      profileImageUrl: "https://randomuser.me/api/portraits/men/22.jpg"
-    },
-    { 
-      id: 4, 
-      title: "Hugo Boss presentation", 
-      price: 35, 
-      color: "bg-yellow-100",
-      description: "Perfume product showcase with professional lighting and composition for marketing campaigns.",
-      creatorId: 104,
-      creatorName: "Mikaela Ramirez",
-      imageUrl: "https://images.unsplash.com/photo-1590736969596-b3cd92be7483?q=80&w=1000&auto=format&fit=crop",
-      profileImageUrl: "https://randomuser.me/api/portraits/women/68.jpg"
-    },
-  ];
+  
+  // // Mock data - in a real app, this would be fetched from an API
+  // const mockProjects = [
+  //   { 
+  //     id: 1, 
+  //     title: "3D Animation", 
+  //     price: 40, 
+  //     color: "bg-blue-100",
+  //     description: "Professional 3D animation services for your projects. High quality renders with attention to detail.",
+  //     creatorId: 101,
+  //     creatorName: "Alex Designer",
+  //     imageUrl: "https://images.unsplash.com/photo-1617296956430-cf0fc6cce243?q=80&w=1000&auto=format&fit=crop",
+  //     profileImageUrl: "https://randomuser.me/api/portraits/men/32.jpg"
+  //   },
+  //   { 
+  //     id: 2, 
+  //     title: "Motion Graphics", 
+  //     price: 20, 
+  //     color: "bg-green-100",
+  //     description: "Creative motion graphics for videos, presentations, and social media content.",
+  //     creatorId: 102,
+  //     creatorName: "Maria Motion",
+  //     imageUrl: "https://images.unsplash.com/photo-1626544827763-d516dce335e2?q=80&w=1000&auto=format&fit=crop",
+  //     profileImageUrl: "https://randomuser.me/api/portraits/women/44.jpg"
+  //   },
+  //   { 
+  //     id: 3, 
+  //     title: "Video Editing", 
+  //     price: 10, 
+  //     color: "bg-purple-100",
+  //     description: "Professional video editing services including color correction, transitions, and effects.",
+  //     creatorId: 103,
+  //     creatorName: "John Editor",
+  //     imageUrl: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?q=80&w=1000&auto=format&fit=crop",
+  //     profileImageUrl: "https://randomuser.me/api/portraits/men/22.jpg"
+  //   },
+  //   { 
+  //     id: 4, 
+  //     title: "Hugo Boss presentation", 
+  //     price: 35, 
+  //     color: "bg-yellow-100",
+  //     description: "Perfume product showcase with professional lighting and composition for marketing campaigns.",
+  //     creatorId: 104,
+  //     creatorName: "Mikaela Ramirez",
+  //     imageUrl: "https://images.unsplash.com/photo-1590736969596-b3cd92be7483?q=80&w=1000&auto=format&fit=crop",
+  //     profileImageUrl: "https://randomuser.me/api/portraits/women/68.jpg"
+  //   },
+  // ];
   
   // Fetch project details on component mount
-  useEffect(() => {
-    // Simulate API call delay
-    const timer = setTimeout(() => {
-      if (projectId) {
-        const foundProject = mockProjects.find(p => p.id === parseInt(projectId));
-        setProject(foundProject || null);
-      }
-      setIsLoading(false);
-    }, 500);
+  // useEffect(() => {
+  //   // Simulate API call delay
+  //   const timer = setTimeout(() => {
+  //     if (projectId) {
+  //       const foundProject = mockProjects.find(p => p.id === parseInt(projectId));
+  //       setProject(foundProject || null);
+  //     }
+  //     setIsLoading(false);
+  //   }, 500);
     
-    return () => clearTimeout(timer);
-  }, [projectId]);
+  //   return () => clearTimeout(timer);
+  // }, [projectId]);
   
   // Handle chat button click
   const handleChatClick = () => {
     if (project) {
-      console.log(`Initiating chat with creator: ${project.creatorName}`);
+      console.log(`Initiating chat with creator: ${project.authorAddress}`);
       // In a real app, this would navigate to the chat page or open a chat modal
     }
   };
@@ -205,7 +228,15 @@ export default function DetailPage() {
     if (!videoContainerRef.current) return;
     
     try {
+      setShowVideo(true);
+      
       if (!isFullscreen) {
+        if (videoRef.current) {
+          videoRef.current.play().catch(error => {
+            console.error("Error playing video:", error);
+          });
+        }
+        
         if (videoContainerRef.current.requestFullscreen) {
           videoContainerRef.current.requestFullscreen();
         } else if ((videoContainerRef.current as any).webkitRequestFullscreen) {
@@ -230,7 +261,14 @@ export default function DetailPage() {
   // Handle fullscreen change events
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isNowFullscreen = !!document.fullscreenElement;
+      setIsFullscreen(isNowFullscreen);
+      
+      // Si se sale del modo fullscreen, ocultar el video y mostrar la miniatura
+      if (!isNowFullscreen && videoRef.current) {
+        videoRef.current.pause();
+        setShowVideo(false);
+      }
     };
     
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -257,20 +295,33 @@ export default function DetailPage() {
       ) : project ? (
         // Project details with full-screen background
         <>
-          {/* Full-screen background image */}
+          {/* Full-screen background image/video container */}
           <div 
             ref={videoContainerRef}
             className="absolute inset-0 w-full h-screen cursor-pointer"
             onClick={toggleFullscreen}
           >
-            <Image 
-              src={project.imageUrl} 
-              alt={project.title}
-              fill
-              className="object-cover"
-              priority
-              unoptimized={true}
+            {/* Mostrar imagen cuando no está en modo video */}
+            {!showVideo && (
+              <Image 
+                src={getThumbnailUrl(project.urlVideo)} 
+                alt={project.title}
+                fill
+                className="object-cover"
+                priority
+                unoptimized={true}
+              />
+            )}
+            
+            {/* Video que estará inicialmente oculto */}
+            <video 
+              ref={videoRef}
+              src={project.urlVideo}
+              className={`absolute inset-0 w-full h-full object-cover ${showVideo ? 'block' : 'hidden'}`}
+              controls={isFullscreen}
+              playsInline
             />
+            
             {/* Subtle gradient overlay for better text visibility */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70"></div>
             
@@ -327,15 +378,15 @@ export default function DetailPage() {
               
               {/* Creator info with profile image instead of "Created by" text */}
               <div className="flex items-center gap-2 mb-2">
-                <Link href={`/profile-video-maker?id=${project.creatorId}`}>
+                <Link href={`/profile-video-maker?id=${project.authorAddress}`}>
                   {profileImageError ? (
                     <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600">
-                      {project.creatorName.charAt(0)}
+                      {project.authorAddress.charAt(0)}
                     </div>
                   ) : (
                     <Image 
-                      src={project.profileImageUrl}
-                      alt={project.creatorName}
+                      src={creator?.photo || "https://randomuser.me/api/portraits/men/32.jpg"}
+                      alt={creator?.name || ''}
                       width={32}
                       height={32}
                       className="rounded-full object-cover"
@@ -344,8 +395,8 @@ export default function DetailPage() {
                     />
                   )}
                 </Link>
-                <Link href={`/profile-video-maker?id=${project.creatorId}`} className="text-white text-sm">
-                  {project.creatorName}
+                <Link href={`/profile-video-maker?id=${project.authorAddress}`} className="text-white text-sm">
+                  {creator?.name}
                 </Link>
               </div>
               
@@ -355,6 +406,7 @@ export default function DetailPage() {
           </div>
         </>
       ) : (
+
         // Project not found
         <div className="flex-grow flex flex-col items-center justify-center p-4">
           <p className="text-gray-600 mb-4">Project not found</p>
@@ -370,4 +422,4 @@ export default function DetailPage() {
       </div>
     </div>
   );
-} 
+}

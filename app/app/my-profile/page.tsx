@@ -406,9 +406,9 @@ export default function MyProfilePage() {
         // Obtener videos del usuario
 
         const videosResponse = await getVideosByAuthor( userAddress );
-        if (videosResponse.error) {
-          throw new Error("Error loading user videos");
-        }
+        // if (videosResponse.error) {
+        //   throw new Error("Error loading user videos");
+        // }
         
         // Convertir IVideo[] a CreationType[] para mantener compatibilidad
         const creationsData = videosResponse.videos.map(video => ({

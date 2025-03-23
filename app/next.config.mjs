@@ -18,6 +18,24 @@ const nextConfig = {
         hostname: 'randomuser.me',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+        port: '', // Deja vacío si no usas un puerto específico
+        pathname: '/**', // Permite todas las rutas bajo este dominio
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.dzoom.org.es',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
