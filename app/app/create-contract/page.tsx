@@ -145,8 +145,8 @@ export default function CreateContractPage() {
       {/* Form Container - Extended white background with proper spacing */}
       <div className="flex-grow bg-white rounded-t-2xl">
       <div className="text-black"><div className="text-black text-sm">
-  Wallet: {userAddress || "Loading..."} <br />
-  WLD Balance:{" "}
+  {/* Wallet: {userAddress || "Loading..."} <br /> */}
+  {/* WLD Balance:{" "} */}
   {balance !== undefined
     ? `${balance} WLD`
     : "Loading..."}
