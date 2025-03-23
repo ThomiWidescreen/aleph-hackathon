@@ -229,7 +229,7 @@ export default function FeedPage() {
                 .filter((_, index) => index % 2 === 0)
                 .map((video, index) => (
                   <div key={video.id}>
-                    <Link href={`/detail?id=${video.id}`} className="block">
+                    <Link href={`/detail?id=${video._id}`} className="block">
                       <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-sm">
                         {/* Etiqueta de precio */}
                         <div className="absolute top-1 sm:top-2 right-1 sm:right-2 z-10 bg-black/25 backdrop-blur-sm text-white font-light py-1 px-2 sm:py-1.5 sm:px-4 rounded-full text-xs sm:text-sm tracking-wide font-montserrat">
@@ -260,7 +260,7 @@ export default function FeedPage() {
                 .filter((_, index) => index % 2 === 1)
                 .map((video, index) => (
                   <div key={video.id}>
-                    <Link href={`/detail?id=${video.id}`} className="block">
+                    <Link href={`/detail?id=${video._id}`} className="block">
                       <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-sm">
                         {/* Etiqueta de precio */}
                         <div className="absolute top-1 sm:top-2 right-1 sm:right-2 z-10 bg-black/25 backdrop-blur-sm text-white font-light py-1 px-2 sm:py-1.5 sm:px-4 rounded-full text-xs sm:text-sm tracking-wide font-montserrat">

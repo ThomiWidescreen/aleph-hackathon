@@ -403,6 +403,7 @@ export default function MyProfilePage() {
         console.log("User data:", userResponse.user);
         setUserProfile(userResponse.user);
         
+        console.log(userResponse.user)
         // Obtener videos del usuario
 
         const videosResponse = await getVideosByAuthor( userAddress );
